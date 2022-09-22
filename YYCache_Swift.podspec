@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'YYCache_Swift'
-  s.version          = '0.1.0'
+  s.version          = '1.0.0'
   s.summary          = 'A short description of YYCache_Swift.'
 
 # This description is used to generate tags and improve search results.
@@ -24,14 +24,17 @@ TODO: Add long description of the pod here.
   s.homepage         = 'https://github.com/shenyutao/YYCache_Swift'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
-  s.author           = { 'shenyutao' => 'shenyutao@nutstore.net' }
+  s.author           = { 'shenyutao' => 'dreamcontinue.cd@gmail.com' }
   s.source           = { :git => 'https://github.com/shenyutao/YYCache_Swift.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
-  s.ios.deployment_target = '10.0'
+  s.ios.deployment_target = '11.0'
+  s.requires_arc = true
+  s.source_files = 'YYCache_Swift/Classes/**/*', "YYCache_Swift/Classes/*.{swift,h,m}"
+  s.public_header_files = 'YYCache_Swift/Classes/**/*.h', "YYCache_Swift/Classes/*.h"
 
-  s.source_files = 'YYCache_Swift/Classes/**/*'
-  
+  s.libraries = 'sqlite3'
+  s.frameworks = 'UIKit', 'CoreFoundation', 'QuartzCore' 
   # s.resource_bundles = {
   #   'YYCache_Swift' => ['YYCache_Swift/Assets/*.png']
   # }

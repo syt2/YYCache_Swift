@@ -1,0 +1,36 @@
+{
+  "name": "YYCache_Swift",
+  "version": "0.1.0",
+  "summary": "A short description of YYCache_Swift.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://github.com/shenyutao/YYCache_Swift",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "shenyutao": "dreamcontinue.cd@gmail.com"
+  },
+  "source": {
+    "git": "https://github.com/shenyutao/YYCache_Swift.git",
+    "tag": "0.1.0"
+  },
+  "platforms": {
+    "ios": "11.0"
+  },
+  "requires_arc": true,
+  "source_files": [
+    "YYCache_Swift/Classes/**/*",
+    "YYCache_Swift/Classes/*.{swift,h,m}"
+  ],
+  "public_header_files": [
+    "YYCache_Swift/Classes/**/*.h",
+    "YYCache_Swift/Classes/*.h"
+  ],
+  "libraries": "sqlite3",
+  "frameworks": [
+    "UIKit",
+    "CoreFoundation",
+    "QuartzCore"
+  ]
+}

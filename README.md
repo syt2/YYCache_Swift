@@ -22,7 +22,7 @@ pod 'YYCache_Swift'
 
 ## Author
 
-shenyutao, shenyutao@nutstore.net
+syt2, dreamcontinue.cd@gmail.com
 
 ## License
 

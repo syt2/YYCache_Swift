@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
   s.name             = 'YYCache_Swift'
   s.version          = '1.0.0'
-  s.summary          = 'A short description of YYCache_Swift.'
+  s.summary          = 'use YYCache in Swift'
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
@@ -21,17 +21,18 @@ Pod::Spec.new do |s|
 TODO: Add long description of the pod here.
                        DESC
 
-  s.homepage         = 'https://github.com/shenyutao/YYCache_Swift'
+  s.homepage         = 'https://github.com/syt2/YYCache_Swift'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
-  s.author           = { 'shenyutao' => 'dreamcontinue.cd@gmail.com' }
-  s.source           = { :git => 'https://github.com/shenyutao/YYCache_Swift.git', :tag => s.version.to_s }
+  s.author           = { 'syt2' => 'dreamcontinue.cd@gmail.com' }
+  s.source           = { :git => 'https://github.com/syt2/YYCache_Swift.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.ios.deployment_target = '11.0'
   s.requires_arc = true
   s.source_files = 'YYCache_Swift/Classes/**/*', "YYCache_Swift/Classes/*.{swift,h,m}"
   s.public_header_files = 'YYCache_Swift/Classes/**/*.h', "YYCache_Swift/Classes/*.h"
+  s.swift_version = '5.0'
 
   s.libraries = 'sqlite3'
   s.frameworks = 'UIKit', 'CoreFoundation', 'QuartzCore' 

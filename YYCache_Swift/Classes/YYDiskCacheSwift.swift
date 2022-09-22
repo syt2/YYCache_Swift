@@ -32,11 +32,11 @@ public class YYDiskCacheSwift {
 
         self.path = path
         self.inlineThreshold = inlineThreshold
-        NotificationCenter.default.addObserver(self, selector: #selector(_appWillBeTerminated), name: .UIApplicationWillTerminate, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(_appWillBeTerminated), name: UIApplication.willTerminateNotification, object: nil)
     }
     
     deinit {
-        NotificationCenter.default.removeObserver(self, name: .UIApplicationWillTerminate, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
     }
     
     public static func instance(path: String, inlineThreshold: UInt = 20 * 1024) -> YYDiskCacheSwift? {
@@ -185,7 +185,7 @@ public extension YYDiskCacheSwift {
 public extension YYDiskCacheSwift {
     func get<T>(type: T.Type, key: String) -> T? where T: NSObject, T: NSCoding {
         guard let item = lock.around(kvStroage?.getItemForKey(key)), let data = item.value else { return nil }
-        let object = (customUnarchiveBlock?(data) as? T ?? (try? NSKeyedUnarchiver.unarchivedObject(ofClass: T.self, from: data)) as? T)
+        let object = (customUnarchiveBlock?(data) ?? (try? NSKeyedUnarchiver.unarchivedObject(ofClass: T.self, from: data))) as? T
         if let object = object, let extData = item.extendedData {
             Self.setExtendedData(extData, to: object)
         }

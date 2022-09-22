@@ -17,7 +17,7 @@ YYCache_Swift is available through [CocoaPods](https://cocoapods.org). To instal
 it, simply add the following line to your Podfile:
 
 ```ruby
-pod 'YYCache_Swift'
+pod 'YYCache_Swift', :git => 'https://github.com/syt2/YYCache_Swift.git'
 ```
 
 ## Author

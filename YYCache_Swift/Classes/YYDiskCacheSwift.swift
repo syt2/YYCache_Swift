@@ -48,7 +48,7 @@ public class YYDiskCacheSwift {
         case 0:
             type = .file
         case .max:
-            type = .sqLite
+            type = .SQLite
         default:
             type = .mixed
         }
@@ -65,7 +65,7 @@ public class YYDiskCacheSwift {
 
 public extension YYDiskCacheSwift {
     func contains(key: String) -> Bool {
-        semaphore.around(kvStroage?.itemExists(forKey: key) ?? false)
+        semaphore.around(kvStroage?.contains(key: key) ?? false)
     }
     
     func contains(key: String, completion: @escaping (String, Bool) -> Void) {
@@ -75,7 +75,7 @@ public extension YYDiskCacheSwift {
     }
     
     func get<T>(type: T.Type, key: String) -> T? where T: Codable {
-        guard let item = semaphore.around(kvStroage?.getItemForKey(key)), let data = item.value else { return nil }
+        guard let item = semaphore.around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
         let object = try? JSONDecoder().decode(T.self, from: data)
         if let object = object, let extData = item.extendedData {
             Self.setExtendedData(extData, to: object)
@@ -97,11 +97,11 @@ public extension YYDiskCacheSwift {
         guard let value = try? JSONEncoder().encode(newValue) else { return }
         let extData = Self.getExtendedData(object: newValue)
         var filename: String? = nil
-        if kvStroage?.type != .sqLite && value.count > inlineThreshold {
+        if kvStroage?.type != .SQLite && value.count > inlineThreshold {
             filename = _filename(key: key)
         }
         semaphore.around {
-            kvStroage?.saveItem(withKey: key, value: value, filename: filename, extendedData: extData)
+            kvStroage?.saveItem(key: key, value: value, filename: filename, extendedData: extData)
         }
     }
     
@@ -113,7 +113,7 @@ public extension YYDiskCacheSwift {
     }
     
     func remove(key: String) {
-        semaphore.around(kvStroage?.removeItem(forKey: key))
+        semaphore.around(kvStroage?.removeItem(key: key))
     }
     
     func remove(key: String, completion: ((String) -> Void)?) {
@@ -143,7 +143,7 @@ public extension YYDiskCacheSwift {
             self.semaphore.around {
                 self.kvStroage?.removeAllItems {
                     progressCallback?(Int($0), Int($1))
-                } end: {
+                } completion: {
                     completion?($0)
                 }
             }
@@ -151,7 +151,7 @@ public extension YYDiskCacheSwift {
     }
     
     var totalCount: Int {
-        Int(semaphore.around(kvStroage?.getItemsCount()) ?? 0)
+        Int(semaphore.around(kvStroage?.count) ?? 0)
     }
     
     func totalCount(completion: @escaping (Int) -> Void) {
@@ -161,7 +161,7 @@ public extension YYDiskCacheSwift {
     }
     
     var totalCost: Int {
-        Int(semaphore.around(kvStroage?.getItemsSize()) ?? 0)
+        Int(semaphore.around(kvStroage?.size) ?? 0)
     }
     
     func totalCost(completion: @escaping (Int) -> Void) {
@@ -184,7 +184,7 @@ public extension YYDiskCacheSwift {
 // MARK: objc nscoding get/set
 public extension YYDiskCacheSwift {
     func get<T>(type: T.Type, key: String) -> T? where T: NSObject, T: NSCoding {
-        guard let item = semaphore.around(kvStroage?.getItemForKey(key)), let data = item.value else { return nil }
+        guard let item = semaphore.around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
         let object = (customUnarchiveBlock?(data) ?? (try? NSKeyedUnarchiver.unarchivedObject(ofClass: T.self, from: data))) as? T
         if let object = object, let extData = item.extendedData {
             Self.setExtendedData(extData, to: object)
@@ -207,11 +207,11 @@ public extension YYDiskCacheSwift {
         guard let value = customArchiveBlock?(newValue) ?? (try? NSKeyedArchiver.archivedData(withRootObject: T.self, requiringSecureCoding: false)) else { return }
         let extData = Self.getExtendedData(object: newValue)
         var filename: String? = nil
-        if kvStroage?.type != .sqLite && value.count > inlineThreshold {
+        if kvStroage?.type != .SQLite && value.count > inlineThreshold {
             filename = _filename(key: key)
         }
         semaphore.around {
-            kvStroage?.saveItem(withKey: key, value: value, filename: filename, extendedData: extData)
+            kvStroage?.saveItem(key: key, value: value, filename: filename, extendedData: extData)
         }
     }
     
@@ -349,12 +349,12 @@ private extension YYDiskCacheSwift {
     
     func _trim(cost: UInt) {
         guard costLimit < .max else { return }
-        kvStroage?.removeItems(toFitSize: Int32(Int(cost)))
+        kvStroage?.removeItems(toFitSize: Int(cost))
     }
     
     func _trim(count: UInt) {
         guard countLimit < .max else { return }
-        kvStroage?.removeItems(toFitCount: Int32(Int(count)))
+        kvStroage?.removeItems(toFitCount: Int(count))
     }
     
     func _trim(age: TimeInterval) {
@@ -366,12 +366,12 @@ private extension YYDiskCacheSwift {
         guard timestamp > ageLimit else { return }
         let age = Int32(timestamp - ageLimit)
         guard age < .max else { return }
-        kvStroage?.removeItemsEarlierThanTime(age)
+        kvStroage?.removeItems(earlierThanTime: Int(age))
     }
     
     func _trim(freeDiskSpace: UInt) {
         guard freeDiskSpace != 0 else { return }
-        guard let totalBytes = kvStroage?.getItemsSize(), totalBytes > 0 else { return }
+        guard let totalBytes = kvStroage?.size, totalBytes > 0 else { return }
         guard let diskFreeBytes = Self.YYDiskSpaceFree() else { return }
         let needTrimBytes = freeDiskSpace - diskFreeBytes
         guard needTrimBytes > 0 else { return }

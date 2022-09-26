@@ -12,7 +12,7 @@
 		3D71D54AD1192656DE0C67E82C8B50B0 /* Pods-YYCache_Swift_Tests-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = B0FFF6F38293896177ED7A79D4E9453F /* Pods-YYCache_Swift_Tests-dummy.m */; };
 		440DED6A2D9E810034D4362CDCA68DA9 /* YYKVStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 4E0B095AC562FCAC169E00ED3A438630 /* YYKVStorage.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		50A130C7810CA8AD0E2DBCF82CD962CD /* Pods-YYCache_Swift_Example-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 27BC510BD9FB0C79958D4855363FE6D9 /* Pods-YYCache_Swift_Example-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		5DA90A9E28E142BD00E6857A /* DispatchSemaphore+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA90A9D28E142BD00E6857A /* DispatchSemaphore+Extensions.swift */; };
+		5DA90AA028E1491C00E6857A /* DispatchSemaphore+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA90A9F28E1491C00E6857A /* DispatchSemaphore+Extensions.swift */; };
 		66E7A9E46944B68A94B90B4467B9BEE3 /* YYCache_Swift-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 5ADF0F3EC842338565CBFAA9E3291F24 /* YYCache_Swift-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		673F7F6DBC52E543D3977DD9899AAB02 /* Pods-YYCache_Swift_Tests-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = DD56CBC61FDD337C3FBD930C5F1F5E78 /* Pods-YYCache_Swift_Tests-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		698433D43FD1FF50AF8FDC02ADE4F1D8 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FDD50CFD2B3CBA8D9B0674C9001AA086 /* QuartzCore.framework */; };
@@ -62,7 +62,7 @@
 		5665F582E72BA615755CF76BAD83CE87 /* Pods-YYCache_Swift_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-YYCache_Swift_Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		5ADF0F3EC842338565CBFAA9E3291F24 /* YYCache_Swift-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "YYCache_Swift-umbrella.h"; sourceTree = "<group>"; };
 		5B174A0677041FB6B40DBA30ABE3A7C5 /* Pods-YYCache_Swift_Example-frameworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-YYCache_Swift_Example-frameworks.sh"; sourceTree = "<group>"; };
-		5DA90A9D28E142BD00E6857A /* DispatchSemaphore+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DispatchSemaphore+Extensions.swift"; sourceTree = "<group>"; };
+		5DA90A9F28E1491C00E6857A /* DispatchSemaphore+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "DispatchSemaphore+Extensions.swift"; path = "YYCache_Swift/Classes/DispatchSemaphore+Extensions.swift"; sourceTree = "<group>"; };
 		6138C0C45BC16D38722D87884406D142 /* Pods-YYCache_Swift_Tests-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-YYCache_Swift_Tests-acknowledgements.markdown"; sourceTree = "<group>"; };
 		724748285A3972594FA3B722090F2DC8 /* YYCache_Swift-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "YYCache_Swift-dummy.m"; sourceTree = "<group>"; };
 		7FCD709139AC26AA4298C2E31A86FEF2 /* Pods-YYCache_Swift_Tests-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-YYCache_Swift_Tests-acknowledgements.plist"; sourceTree = "<group>"; };
@@ -239,7 +239,7 @@
 		F770F0C98A4DAD7B0E235648043F7F78 /* YYCache_Swift */ = {
 			isa = PBXGroup;
 			children = (
-				5DA90A9D28E142BD00E6857A /* DispatchSemaphore+Extensions.swift */,
+				5DA90A9F28E1491C00E6857A /* DispatchSemaphore+Extensions.swift */,
 				EBB3BE186F47A4318026A6D025D90C88 /* YYCacheSwift.swift */,
 				45F983278FF6941825B16AC6B264E5C8 /* YYDiskCacheSwift.swift */,
 				4E0B095AC562FCAC169E00ED3A438630 /* YYKVStorage.h */,
@@ -407,7 +407,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5DA90A9E28E142BD00E6857A /* DispatchSemaphore+Extensions.swift in Sources */,
+				5DA90AA028E1491C00E6857A /* DispatchSemaphore+Extensions.swift in Sources */,
 				FC2766B15566C08E5A7AE4D6283D933A /* YYCache_Swift-dummy.m in Sources */,
 				900E4DBAA3B2A1149FECC59AA1104740 /* YYCacheSwift.swift in Sources */,
 				E1AB16C4814305557C1E51DFE585DB81 /* YYDiskCacheSwift.swift in Sources */,

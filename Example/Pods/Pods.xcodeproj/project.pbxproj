@@ -12,7 +12,7 @@
 		3D71D54AD1192656DE0C67E82C8B50B0 /* Pods-YYCache_Swift_Tests-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = B0FFF6F38293896177ED7A79D4E9453F /* Pods-YYCache_Swift_Tests-dummy.m */; };
 		440DED6A2D9E810034D4362CDCA68DA9 /* YYKVStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 4E0B095AC562FCAC169E00ED3A438630 /* YYKVStorage.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		50A130C7810CA8AD0E2DBCF82CD962CD /* Pods-YYCache_Swift_Example-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 27BC510BD9FB0C79958D4855363FE6D9 /* Pods-YYCache_Swift_Example-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		563CF426F52127CC25F467A26DB44B68 /* UnfairLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555845F36B6BE917F79E943995E07654 /* UnfairLock.swift */; };
+		5DA90A9E28E142BD00E6857A /* DispatchSemaphore+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA90A9D28E142BD00E6857A /* DispatchSemaphore+Extensions.swift */; };
 		66E7A9E46944B68A94B90B4467B9BEE3 /* YYCache_Swift-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 5ADF0F3EC842338565CBFAA9E3291F24 /* YYCache_Swift-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		673F7F6DBC52E543D3977DD9899AAB02 /* Pods-YYCache_Swift_Tests-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = DD56CBC61FDD337C3FBD930C5F1F5E78 /* Pods-YYCache_Swift_Tests-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		698433D43FD1FF50AF8FDC02ADE4F1D8 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FDD50CFD2B3CBA8D9B0674C9001AA086 /* QuartzCore.framework */; };
@@ -46,7 +46,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0050F79CEA61E5D95021086709299F13 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; path = LICENSE; sourceTree = "<group>"; };
+		0050F79CEA61E5D95021086709299F13 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		06504E4EC7889E5B16BB22DFCFB827E4 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		0D2C76F8E2BB510B96CDE9198C9810EE /* Pods-YYCache_Swift_Example-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-YYCache_Swift_Example-acknowledgements.markdown"; sourceTree = "<group>"; };
 		1E22627DE23F9219B243BE0ADAB2AE5A /* YYCache_Swift.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = YYCache_Swift.debug.xcconfig; sourceTree = "<group>"; };
@@ -59,17 +59,17 @@
 		45F983278FF6941825B16AC6B264E5C8 /* YYDiskCacheSwift.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = YYDiskCacheSwift.swift; path = YYCache_Swift/Classes/YYDiskCacheSwift.swift; sourceTree = "<group>"; };
 		4745C7C5402744A84249787541FCD2AE /* Pods-YYCache_Swift_Example-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-YYCache_Swift_Example-acknowledgements.plist"; sourceTree = "<group>"; };
 		4E0B095AC562FCAC169E00ED3A438630 /* YYKVStorage.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = YYKVStorage.h; path = YYCache_Swift/Classes/YYKVStorage.h; sourceTree = "<group>"; };
-		555845F36B6BE917F79E943995E07654 /* UnfairLock.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UnfairLock.swift; path = YYCache_Swift/Classes/UnfairLock.swift; sourceTree = "<group>"; };
 		5665F582E72BA615755CF76BAD83CE87 /* Pods-YYCache_Swift_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-YYCache_Swift_Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		5ADF0F3EC842338565CBFAA9E3291F24 /* YYCache_Swift-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "YYCache_Swift-umbrella.h"; sourceTree = "<group>"; };
 		5B174A0677041FB6B40DBA30ABE3A7C5 /* Pods-YYCache_Swift_Example-frameworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-YYCache_Swift_Example-frameworks.sh"; sourceTree = "<group>"; };
+		5DA90A9D28E142BD00E6857A /* DispatchSemaphore+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DispatchSemaphore+Extensions.swift"; sourceTree = "<group>"; };
 		6138C0C45BC16D38722D87884406D142 /* Pods-YYCache_Swift_Tests-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-YYCache_Swift_Tests-acknowledgements.markdown"; sourceTree = "<group>"; };
 		724748285A3972594FA3B722090F2DC8 /* YYCache_Swift-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "YYCache_Swift-dummy.m"; sourceTree = "<group>"; };
 		7FCD709139AC26AA4298C2E31A86FEF2 /* Pods-YYCache_Swift_Tests-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-YYCache_Swift_Tests-acknowledgements.plist"; sourceTree = "<group>"; };
 		866B5D4FA8D6F130215A72EDEE1945FF /* YYMemoryCache.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = YYMemoryCache.h; path = YYCache_Swift/Classes/YYMemoryCache.h; sourceTree = "<group>"; };
 		8A41904B412DF2CF6B736202D2AB7E46 /* Pods-YYCache_Swift_Tests-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-YYCache_Swift_Tests-Info.plist"; sourceTree = "<group>"; };
 		97F4DAF5578ADF7AB8A413862C895E74 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		9E207FBA7B0F7D0D3D3690ABD2DD5B1E /* Pods-YYCache_Swift_Tests.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-YYCache_Swift_Tests.modulemap"; sourceTree = "<group>"; };
 		9E8AE7648441FF8692B20995A8D50BC4 /* YYCache_Swift */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = YYCache_Swift; path = YYCache_Swift.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A243172A2BAB8895E1A3B00BADB37851 /* YYCache_Swift-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "YYCache_Swift-prefix.pch"; sourceTree = "<group>"; };
@@ -77,12 +77,12 @@
 		B0FFF6F38293896177ED7A79D4E9453F /* Pods-YYCache_Swift_Tests-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-YYCache_Swift_Tests-dummy.m"; sourceTree = "<group>"; };
 		B73EFC27CA9A30DA5897987DEBAE651A /* Pods-YYCache_Swift_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-YYCache_Swift_Tests.release.xcconfig"; sourceTree = "<group>"; };
 		C09DE5D3C303570DB20F2D74414D3FA9 /* Pods-YYCache_Swift_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-YYCache_Swift_Example.debug.xcconfig"; sourceTree = "<group>"; };
-		C272354C808901595904DB33DE10D253 /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; path = README.md; sourceTree = "<group>"; };
+		C272354C808901595904DB33DE10D253 /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		D160144B4DA3ED08C9052FA993DFEFD5 /* Pods-YYCache_Swift_Tests */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "Pods-YYCache_Swift_Tests"; path = Pods_YYCache_Swift_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D35826125D91C72B1788EB26754CE955 /* Pods-YYCache_Swift_Example-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-YYCache_Swift_Example-Info.plist"; sourceTree = "<group>"; };
 		D4FB2752992B8AA306AD0E8A1F3EA301 /* YYCache_Swift.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = YYCache_Swift.modulemap; sourceTree = "<group>"; };
 		D5AC04A3B9CFB560F00FA3C98B5AB8FB /* YYCache_Swift-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "YYCache_Swift-Info.plist"; sourceTree = "<group>"; };
-		D5B70F5A4C962EBA9F14A4F1FD92BECE /* YYCache_Swift.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; path = YYCache_Swift.podspec; sourceTree = "<group>"; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		D5B70F5A4C962EBA9F14A4F1FD92BECE /* YYCache_Swift.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; path = YYCache_Swift.podspec; sourceTree = "<group>"; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		DC34C4C7E2B0F3A43A90A5B525E61C0C /* Pods-YYCache_Swift_Example.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-YYCache_Swift_Example.modulemap"; sourceTree = "<group>"; };
 		DD56CBC61FDD337C3FBD930C5F1F5E78 /* Pods-YYCache_Swift_Tests-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-YYCache_Swift_Tests-umbrella.h"; sourceTree = "<group>"; };
 		E5BE5229350DECFF4C9228DBAA7C45F9 /* YYMemoryCache.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = YYMemoryCache.m; path = YYCache_Swift/Classes/YYMemoryCache.m; sourceTree = "<group>"; };
@@ -239,7 +239,7 @@
 		F770F0C98A4DAD7B0E235648043F7F78 /* YYCache_Swift */ = {
 			isa = PBXGroup;
 			children = (
-				555845F36B6BE917F79E943995E07654 /* UnfairLock.swift */,
+				5DA90A9D28E142BD00E6857A /* DispatchSemaphore+Extensions.swift */,
 				EBB3BE186F47A4318026A6D025D90C88 /* YYCacheSwift.swift */,
 				45F983278FF6941825B16AC6B264E5C8 /* YYDiskCacheSwift.swift */,
 				4E0B095AC562FCAC169E00ED3A438630 /* YYKVStorage.h */,
@@ -407,7 +407,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				563CF426F52127CC25F467A26DB44B68 /* UnfairLock.swift in Sources */,
+				5DA90A9E28E142BD00E6857A /* DispatchSemaphore+Extensions.swift in Sources */,
 				FC2766B15566C08E5A7AE4D6283D933A /* YYCache_Swift-dummy.m in Sources */,
 				900E4DBAA3B2A1149FECC59AA1104740 /* YYCacheSwift.swift in Sources */,
 				E1AB16C4814305557C1E51DFE585DB81 /* YYDiskCacheSwift.swift in Sources */,
@@ -561,8 +561,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRIP_INSTALLED_PRODUCT = NO;
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 5.0;
 				SYMROOT = "${SRCROOT}/../build";
 			};

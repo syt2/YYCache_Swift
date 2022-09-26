@@ -25,8 +25,8 @@ public class YYDiskCacheSwift {
     public var errorLogsEnabled: Bool = false
     
     private var kvStroage: YYKVStorage?
-    private lazy var lock = UnfairLock()
-    private lazy var queue: DispatchQueue = DispatchQueue(label: "com.ibireme.cache.disk", qos: .background, attributes: .concurrent)
+    private var semaphore = DispatchSemaphore(value: 1)
+    private var queue: DispatchQueue = DispatchQueue(label: "com.ibireme.cache.disk", qos: .background, attributes: .concurrent)
     
     private init(path: String, inlineThreshold: UInt) {
 
@@ -65,7 +65,7 @@ public class YYDiskCacheSwift {
 
 public extension YYDiskCacheSwift {
     func contains(key: String) -> Bool {
-        lock.around(kvStroage?.itemExists(forKey: key) ?? false)
+        semaphore.around(kvStroage?.itemExists(forKey: key) ?? false)
     }
     
     func contains(key: String, completion: @escaping (String, Bool) -> Void) {
@@ -75,7 +75,7 @@ public extension YYDiskCacheSwift {
     }
     
     func get<T>(type: T.Type, key: String) -> T? where T: Codable {
-        guard let item = lock.around(kvStroage?.getItemForKey(key)), let data = item.value else { return nil }
+        guard let item = semaphore.around(kvStroage?.getItemForKey(key)), let data = item.value else { return nil }
         let object = try? JSONDecoder().decode(T.self, from: data)
         if let object = object, let extData = item.extendedData {
             Self.setExtendedData(extData, to: object)
@@ -100,7 +100,7 @@ public extension YYDiskCacheSwift {
         if kvStroage?.type != .sqLite && value.count > inlineThreshold {
             filename = _filename(key: key)
         }
-        lock.around {
+        semaphore.around {
             kvStroage?.saveItem(withKey: key, value: value, filename: filename, extendedData: extData)
         }
     }
@@ -113,7 +113,7 @@ public extension YYDiskCacheSwift {
     }
     
     func remove(key: String) {
-        lock.around(kvStroage?.removeItem(forKey: key))
+        semaphore.around(kvStroage?.removeItem(forKey: key))
     }
     
     func remove(key: String, completion: ((String) -> Void)?) {
@@ -124,7 +124,7 @@ public extension YYDiskCacheSwift {
     }
     
     func removeAll() {
-        lock.around(kvStroage?.removeAllItems())
+        semaphore.around(kvStroage?.removeAllItems())
     }
     
     func removeAll(completion: (() -> Void)?) {
@@ -140,7 +140,7 @@ public extension YYDiskCacheSwift {
                 completion?(true)
                 return
             }
-            self.lock.around {
+            self.semaphore.around {
                 self.kvStroage?.removeAllItems {
                     progressCallback?(Int($0), Int($1))
                 } end: {
@@ -151,7 +151,7 @@ public extension YYDiskCacheSwift {
     }
     
     var totalCount: Int {
-        Int(lock.around(kvStroage?.getItemsCount()) ?? 0)
+        Int(semaphore.around(kvStroage?.getItemsCount()) ?? 0)
     }
     
     func totalCount(completion: @escaping (Int) -> Void) {
@@ -161,7 +161,7 @@ public extension YYDiskCacheSwift {
     }
     
     var totalCost: Int {
-        Int(lock.around(kvStroage?.getItemsSize()) ?? 0)
+        Int(semaphore.around(kvStroage?.getItemsSize()) ?? 0)
     }
     
     func totalCost(completion: @escaping (Int) -> Void) {
@@ -172,10 +172,10 @@ public extension YYDiskCacheSwift {
     
     var errorLogsEnable: Bool {
         get {
-            lock.around(kvStroage?.errorLogsEnabled ?? false)
+            semaphore.around(kvStroage?.errorLogsEnabled ?? false)
         }
         set {
-            lock.around(kvStroage?.errorLogsEnabled = newValue)
+            semaphore.around(kvStroage?.errorLogsEnabled = newValue)
         }
     }
 }
@@ -184,7 +184,7 @@ public extension YYDiskCacheSwift {
 // MARK: objc nscoding get/set
 public extension YYDiskCacheSwift {
     func get<T>(type: T.Type, key: String) -> T? where T: NSObject, T: NSCoding {
-        guard let item = lock.around(kvStroage?.getItemForKey(key)), let data = item.value else { return nil }
+        guard let item = semaphore.around(kvStroage?.getItemForKey(key)), let data = item.value else { return nil }
         let object = (customUnarchiveBlock?(data) ?? (try? NSKeyedUnarchiver.unarchivedObject(ofClass: T.self, from: data))) as? T
         if let object = object, let extData = item.extendedData {
             Self.setExtendedData(extData, to: object)
@@ -210,7 +210,7 @@ public extension YYDiskCacheSwift {
         if kvStroage?.type != .sqLite && value.count > inlineThreshold {
             filename = _filename(key: key)
         }
-        lock.around {
+        semaphore.around {
             kvStroage?.saveItem(withKey: key, value: value, filename: filename, extendedData: extData)
         }
     }
@@ -227,7 +227,7 @@ public extension YYDiskCacheSwift {
 // MARK: trim
 public extension YYDiskCacheSwift {
     func trim(count: UInt) {
-        lock.around {
+        semaphore.around {
             _trim(count: count)
         }
     }
@@ -240,7 +240,7 @@ public extension YYDiskCacheSwift {
     }
 
     func trim(cost: UInt) {
-        lock.around {
+        semaphore.around {
             _trim(cost: cost)
         }
     }
@@ -253,7 +253,7 @@ public extension YYDiskCacheSwift {
     }
     
     func trim(age: TimeInterval) {
-        lock.around {
+        semaphore.around {
             _trim(age: age)
         }
     }
@@ -287,7 +287,7 @@ public extension YYDiskCacheSwift {
 
 // MARK: global instance
 private extension YYDiskCacheSwift {
-    private static let globalInstancesLock = UnfairLock()
+    private static let globalInstancesLock = DispatchSemaphore(value: 1)
     private static var globalInstances = [String: () -> YYDiskCacheSwift?]()
     
     static func YYDiskCacheGetGlobal(path: String) -> YYDiskCacheSwift? {
@@ -302,9 +302,7 @@ private extension YYDiskCacheSwift {
                 globalInstances.removeValue(forKey: path)
                 return
             }
-            globalInstances[path] = { [weak cache] in
-                cache
-            }
+            globalInstances[path] = { [weak cache] in cache }
         }
     }
     
@@ -340,7 +338,7 @@ private extension YYDiskCacheSwift {
     func _trimInBackground() {
         queue.async { [weak self] in
             guard let self = self else { return }
-            self.lock.around {
+            self.semaphore.around {
                 self._trim(cost: self.costLimit)
                 self._trim(count: self.countLimit)
                 self._trim(age: self.ageLimit)
@@ -386,7 +384,7 @@ private extension YYDiskCacheSwift {
     }
     
     @objc func _appWillBeTerminated() {
-        lock.around {
+        semaphore.around {
             kvStroage = nil
         }
     }

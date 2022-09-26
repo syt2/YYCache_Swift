@@ -142,7 +142,7 @@ public extension YYCacheSwift {
     /// This method may blocks the calling thread until file write finished.
     /// - Parameters:
     ///   - key: The key with which to associate the value.
-    ///   - value: The object to be stored in the cache. If nil, it calls `removeObjectForKey:`.
+    ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
     func set<T>(key: String, value: T?) where T: Codable {
         memoryCache.setObject(value, forKey: key)
         diskCacheSwift.set(key: key, value: value)
@@ -152,7 +152,7 @@ public extension YYCacheSwift {
     /// This method returns immediately and invoke the passed block in background queue when the operation finished.
     /// - Parameters:
     ///   - key: A string identifying the value.
-    ///   - value: The object to be stored in the cache. If nil, it calls `removeObjectForKey:`.
+    ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
     ///   - completion: A closure which will be invoked in background queue when finished.
     func set<T>(key: String, value: T?, completion: (() -> Void)?) where T: Codable {
         memoryCache.setObject(value, forKey: key)

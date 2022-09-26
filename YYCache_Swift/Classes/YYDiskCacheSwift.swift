@@ -298,7 +298,7 @@ private extension YYDiskCacheSwift {
     static func YYDiskCacheSetGlobal(cache: YYDiskCacheSwift?) {
         guard let path = cache?.path, !path.isEmpty else { return }
         globalInstancesLock.around {
-            guard let cache = cache else {
+            if cache == nil {
                 globalInstances.removeValue(forKey: path)
                 return
             }

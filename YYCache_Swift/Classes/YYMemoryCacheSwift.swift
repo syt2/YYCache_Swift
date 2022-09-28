@@ -62,6 +62,11 @@ public class YYMemoryCacheSwift {
     /// The default value is nil.
     public var didEnterBackgroundClosure: ((YYMemoryCacheSwift) -> Void)?
     
+    
+    private var _releaseOnMainThread: Bool = false
+    
+    private var _releaseAsynchronously: Bool = true
+    
     private var lock = pthread_mutex_t()
     private var lru = YYLinkMap()
     private var queue = DispatchQueue(label: "com.ibireme.cache.memory")
@@ -144,7 +149,13 @@ public extension YYMemoryCacheSwift {
                 queue.async { self._trim(cost: self.costLimit) }
             }
             if lru.totalCount > countLimit {
-                lru.removeTail()
+                guard let node = lru.removeTail() else { return }
+                if releaseAsynchronously {
+                    (releaseOnMainThread ? DispatchQueue.main : .global())
+                        .async { _ = node }
+                } else if releaseOnMainThread && pthread_main_np() != 0 {
+                    DispatchQueue.main.async { _ = node }
+                }
             }
         }
     }
@@ -155,12 +166,35 @@ public extension YYMemoryCacheSwift {
         around {
             guard let node = lru.dict[key] else { return }
             lru.remove(node: node)
+            if releaseAsynchronously {
+                (releaseOnMainThread ? DispatchQueue.main : .global())
+                    .async { _ = node }
+            } else if releaseOnMainThread && pthread_main_np() != 0 {
+                DispatchQueue.main.async { _ = node }
+            }
         }
     }
     
     /// Empties the cache immediately.
     func removeAll() {
         around(lru.removeAll())
+    }
+    
+    
+    /// If `true`, the key-value pair will be released asynchronously to avoid blocking the access methods,
+    /// otherwise it will be released in the access method (such as remove). Default is YES.
+    var releaseAsynchronously: Bool {
+        get { around(_releaseAsynchronously) }
+        set { around(_releaseAsynchronously = newValue) }
+    }
+    
+    /// If `true`, the key-value pair will be released on main thread,
+    /// otherwise on background thread. Default is false.
+    /// You may set this value to `true` if the key-value object contains
+    /// the instance which should be released in main thread (such as UIView/CALayer).
+    var releaseOnMainThread: Bool {
+        get { around(_releaseOnMainThread) }
+        set { around(_releaseOnMainThread = newValue)}
     }
     
 }
@@ -213,20 +247,24 @@ private extension YYMemoryCacheSwift {
             }
             return lru.totalCost <= costLimit
         }
-        if finish { return }
         
+        if finish { return }
+        var holder = [Any]()
         repeat {
             if pthread_mutex_trylock(&lock) == 0 {
                 if lru.totalCost > costLimit {
-                    lru.removeTail()
+                    if let tail = lru.removeTail() { holder.append(tail) }
                 } else {
                     finish = true
                 }
                 pthread_mutex_unlock(&lock)
             } else {
-                usleep(10 * 1000)
+                usleep(10 * 1000) //10 ms
             }
         } while !finish
+        if holder.isEmpty { return }
+        (lru.releaseOnMainThread ? DispatchQueue.main : .global())
+            .async { _ = holder }
     }
     
     func _trim(count: UInt) {
@@ -237,12 +275,13 @@ private extension YYMemoryCacheSwift {
             }
             return lru.totalCount <= countLimit
         }
-        if finish { return }
         
+        if finish { return }
+        var holder = [Any]()
         repeat {
             if pthread_mutex_trylock(&lock) == 0 {
                 if lru.totalCount > countLimit {
-                    lru.removeTail()
+                    if let tail = lru.removeTail() { holder.append(tail) }
                 } else {
                     finish = true
                 }
@@ -251,6 +290,9 @@ private extension YYMemoryCacheSwift {
                 usleep(10 * 1000)
             }
         } while !finish
+        if holder.isEmpty { return }
+        (lru.releaseOnMainThread ? DispatchQueue.main : .global())
+            .async { _ = holder }
     }
 
     func _trim(age: TimeInterval) {
@@ -263,11 +305,13 @@ private extension YYMemoryCacheSwift {
             guard let tail = lru.tail else { return true }
             return now - tail.time <= ageLimit
         }
+        
         if finish { return }
+        var holder = [Any]()
         repeat {
             if pthread_mutex_trylock(&lock) == 0 {
                 if let tail = lru.tail, now - tail.time > ageLimit {
-                    lru.removeTail()
+                    if let tail = lru.removeTail() { holder.append(tail) }
                 } else {
                     finish = true
                 }
@@ -276,6 +320,9 @@ private extension YYMemoryCacheSwift {
                 usleep(10 * 1000)
             }
         } while !finish
+        if holder.isEmpty { return }
+        (lru.releaseOnMainThread ? DispatchQueue.main : .global())
+            .async { _ = holder }
     }
     
     @objc func _appDidReceiveMemoryWarningNotification() {
@@ -339,15 +386,16 @@ extension YYLinkedMapNode: Hashable {
 
 
 fileprivate class YYLinkMap {
-    var dict: [AnyHashable: YYLinkedMapNode]
+    var dict: [AnyHashable: YYLinkedMapNode] = [:]
     var totalCost: UInt = 0
     var totalCount: UInt = 0
     weak var head: YYLinkedMapNode?
     weak var tail: YYLinkedMapNode?
+    
+    var releaseOnMainThread: Bool = false
+    var releaseAsynchronously: Bool = true
 
-    init() {
-        dict = [:]
-    }
+    init() { }
 
     func insertAtHead(node: YYLinkedMapNode) {
         dict[node.key] = node
@@ -392,6 +440,14 @@ fileprivate class YYLinkMap {
         totalCount = 0
         head = nil
         tail = nil
+        guard dict.count > 0 else { return }
+        let holder = dict
         dict.removeAll()
+        if releaseAsynchronously {
+            (releaseOnMainThread ? DispatchQueue.main : .global())
+                .async { _ = holder }
+        } else if releaseOnMainThread && pthread_main_np() != 0 {
+            DispatchQueue.main.async { _ = holder }
+        }
     }
 }

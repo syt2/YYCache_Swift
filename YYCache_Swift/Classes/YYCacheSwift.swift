@@ -18,7 +18,7 @@ public class YYCacheSwift {
     public let name: String
     
     /// The underlying memory cache. see `YYMemoryCache` for more information.
-    public let memoryCache: YYMemoryCache
+    public let memoryCache: YYMemoryCacheSwift
     
     /// The underlying disk cache. see `YYDiskCache` for more information.
     public let diskCacheSwift: YYDiskCacheSwift
@@ -46,7 +46,7 @@ public class YYCacheSwift {
             return nil
         }
         let name = path.lastPathComponent
-        let memoryCache = YYMemoryCache()
+        let memoryCache = YYMemoryCacheSwift()
         memoryCache.name = name
         self.name = name
         self.diskCacheSwift = diskCacheSwift
@@ -80,8 +80,7 @@ public extension YYCacheSwift {
     /// - Parameter key: A string identifying the value. If nil, just return NO.
     /// - Returns: Whether the key is in cache.
     func containes(key: String) -> Bool {
-        memoryCache.containsObject(forKey: key)
-            || diskCacheSwift.contains(key: key)
+        memoryCache.contains(key: key) || diskCacheSwift.contains(key: key)
     }
     
     ///  Returns a boolean value with the block that indicates whether a given key is in cache.
@@ -90,7 +89,7 @@ public extension YYCacheSwift {
     ///   - key: A string identifying the value. If nil, just return NO.
     ///   - completion: A closure which will be invoked in background queue when finished.
     func contains(key: String, completion: @escaping (String, Bool) -> Void) {
-        if memoryCache.containsObject(forKey: key) {
+        if memoryCache.contains(key: key) {
             DispatchQueue.global().async {
                 completion(key, true)
             }
@@ -106,13 +105,13 @@ public extension YYCacheSwift {
     ///   - key: A string identifying the value. If nil, just return nil.
     /// - Returns: The value associated with key, or nil if no value is associated with key.
     func get<T>(type: T.Type, key: String) -> T? where T: Codable {
-        if let object = memoryCache.object(forKey: key) as? T {
+        if let object = memoryCache[key] as? T {
             return object
         }
         guard let object = diskCacheSwift.get(type: T.self, key: key) else {
             return nil
         }
-        memoryCache.setObject(object, forKey: key)
+        memoryCache[key] = object
         return object
     }
     
@@ -123,15 +122,15 @@ public extension YYCacheSwift {
     ///   - key: A string identifying the value. If nil, just return nil.
     ///   - completion: A closure which will be invoked in background queue when finished.
     func get<T>(type: T.Type, key: String, completion: @escaping (String, T?) -> Void) where T: Codable {
-        if let object = memoryCache.object(forKey: key) as? T {
+        if let object = memoryCache[key] as? T {
             DispatchQueue.global().async {
                 completion(key, object)
             }
             return
         }
         diskCacheSwift.get(type: type, key: key) { key, value in
-            if let value = value, !self.memoryCache.containsObject(forKey: key) {
-                self.memoryCache.setObject(value, forKey: key)
+            if let value = value, !self.memoryCache.contains(key: key) {
+                self.memoryCache[key] = value
             }
             completion(key, value)
         }
@@ -143,7 +142,7 @@ public extension YYCacheSwift {
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `removeObjectForKey:`.
     func set<T>(key: String, value: T?) where T: Codable {
-        memoryCache.setObject(value, forKey: key)
+        memoryCache[key] = value
         diskCacheSwift.set(key: key, value: value)
     }
     
@@ -154,7 +153,7 @@ public extension YYCacheSwift {
     ///   - value: The object to be stored in the cache. If nil, it calls `removeObjectForKey:`.
     ///   - completion: A closure which will be invoked in background queue when finished.
     func set<T>(key: String, value: T?, completion: (() -> Void)?) where T: Codable {
-        memoryCache.setObject(value, forKey: key)
+        memoryCache[key] = value
         diskCacheSwift.set(key: key, value: value, completion: completion)
     }
     
@@ -162,7 +161,7 @@ public extension YYCacheSwift {
     ///  This method may blocks the calling thread until file delete finished.
     /// - Parameter key: The key identifying the value to be removed.
     func remove(key: String) {
-        memoryCache.removeObject(forKey: key)
+        memoryCache.remove(forKey: key)
         diskCacheSwift.remove(key: key)
     }
     
@@ -172,14 +171,14 @@ public extension YYCacheSwift {
     ///   - key: The key identifying the value to be removed. If nil, this method has no effect.
     ///   - completion: A closure which will be invoked in background queue when finished.
     func remove(key: String, completion: ((String) -> Void)?) {
-        memoryCache.removeObject(forKey: key)
+        memoryCache.remove(forKey: key)
         diskCacheSwift.remove(key: key, completion: completion)
     }
     
     ///  Empties the cache.
     ///  This method may blocks the calling thread until file delete finished.
     func removeAll() {
-        memoryCache.removeAllObjects()
+        memoryCache.removeAll()
         diskCacheSwift.removeAll()
     }
     
@@ -187,7 +186,7 @@ public extension YYCacheSwift {
     ///  This method returns immediately and invoke the passed block in background queue when the operation finished.
     /// - Parameter completion: A closure which will be invoked in background queue when finished.
     func removeAll(completion: (() -> Void)?) {
-        memoryCache.removeAllObjects()
+        memoryCache.removeAll()
         diskCacheSwift.removeAll(completion: completion)
     }
     
@@ -197,7 +196,7 @@ public extension YYCacheSwift {
     ///   - progressCallback: This closure will be invoked during removing, pass nil to ignore.
     ///   - completion: This closure will be invoked at the end, pass nil to ignore.
     func removeAll(progressCallback: ((Int, Int) -> Void)?, completion: ((Bool) -> Void)?) {
-        memoryCache.removeAllObjects()
+        memoryCache.removeAll()
         diskCacheSwift.removeAll(progressCallback: progressCallback, completion: completion)
     }
 }
@@ -212,13 +211,13 @@ public extension YYCacheSwift {
     ///   - key: A string identifying the value. If nil, just return nil.
     /// - Returns: The value associated with key, or nil if no value is associated with key.
     func get<T>(type: T.Type, key: String) -> T? where T: NSObject, T: NSCoding {
-        if let object = memoryCache.object(forKey: key) as? T {
+        if let object = memoryCache[key] as? T {
             return object
         }
         guard let object = diskCacheSwift.get(type: T.self, key: key) else {
             return nil
         }
-        memoryCache.setObject(object, forKey: key)
+        memoryCache[key] = object
         return object
     }
     
@@ -229,15 +228,15 @@ public extension YYCacheSwift {
     ///   - key: A string identifying the value. If nil, just return nil.
     ///   - completion: A closure which will be invoked in background queue when finished.
     func get<T>(type: T.Type, key: String, completion: @escaping (String, T?) -> Void) where T: NSObject, T: NSCoding {
-        if let object = memoryCache.object(forKey: key) as? T {
+        if let object = memoryCache[key] as? T {
             DispatchQueue.global().async {
                 completion(key, object)
             }
             return
         }
         diskCacheSwift.get(type: type, key: key) { key, value in
-            if let value = value, !self.memoryCache.containsObject(forKey: key) {
-                self.memoryCache.setObject(value, forKey: key)
+            if let value = value, !self.memoryCache.contains(key: key) {
+                self.memoryCache[key] = value
             }
             completion(key, value)
         }
@@ -249,7 +248,7 @@ public extension YYCacheSwift {
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `removeObjectForKey:`.
     func set<T>(key: String, value: T?) where T: NSObject, T: NSCoding {
-        memoryCache.setObject(value, forKey: key)
+        memoryCache[key] = value
         diskCacheSwift.set(key: key, value: value)
     }
     
@@ -260,7 +259,7 @@ public extension YYCacheSwift {
     ///   - value: The object to be stored in the cache. If nil, it calls `removeObjectForKey:`.
     ///   - completion: A closure which will be invoked in background queue when finished.
     func set<T>(key: String, value: T?, completion: (() -> Void)?) where T: NSObject, T: NSCoding {
-        memoryCache.setObject(value, forKey: key)
+        memoryCache[key] = value
         diskCacheSwift.set(key: key, value: value, completion: completion)
     }
 }

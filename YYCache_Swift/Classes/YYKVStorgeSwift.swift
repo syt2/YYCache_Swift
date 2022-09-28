@@ -9,17 +9,7 @@ import Foundation
 import UIKit
 import SQLite3
 
-private struct YYKVConstParams {
-    static let kMaxErrorRetryCount: UInt = 8
-    static let kMinRetryTimeInterval: TimeInterval = 2.0
-    static let kPathLengthMax = Int(PATH_MAX - 64)
-    static let kDBFileName = "manifest.sqlite"
-    static let kDBShmFileName = "manifest.sqlite-shm"
-    static let kDBWalFileName = "manifest.sqlite-wal"
-    static let kDataDirectoryName = "data"
-    static let kTrashDirectoryName = "trash"
-}
-
+///  YYKVStorageItem is used by `YYKVStorage` to store key-value pair and meta data.
 struct YYKVStorgeItem {
     fileprivate(set) var key: String
     fileprivate(set) var value: Data?
@@ -30,6 +20,16 @@ struct YYKVStorgeItem {
     fileprivate(set) var extendedData: Data?
 }
 
+/// Storage type, indicated where the `YYKVStorageItem.value` stored.
+///
+/// Typically, write data to sqlite is faster than extern file, but reading performance is dependent on data size.
+/// In my(origin authors) test (on iPhone 6 64G), read data from extern file is faster than from sqlite when the data is larger than 20KB.
+/// - If you want to store large number of small datas (such as contacts cache),
+/// use YYKVStorageTypeSQLite to get better performance.
+/// - If you want to store large files (such as image cache),
+/// use YYKVStorageTypeFile to get better performance.
+/// - You can use YYKVStorageTypeMixed and choice your storage type for each item.
+/// See <http://www.sqlite.org/intern-v-extern-blob.html> for more information.
 enum YYKVStorageType: Int {
     /// The `value` is stored as a file in file system.
     case file = 0
@@ -39,17 +39,27 @@ enum YYKVStorageType: Int {
     case mixed = 2
 }
 
-private extension YYKVStorage {
-    static var YYSharedApplication: UIApplication? {
-        let isAppExtension = Bundle.main.bundlePath.hasSuffix(".appex")
-        return isAppExtension ? nil : UIApplication.shared
-    }
-}
 
-class YYKVStorage {
+/// YYKVStorage is a key-value storage based on sqlite and file system.
+/// Typically, you should not use this class directly.
+///
+/// The designated initializer for YYKVStorage is `initWithPath:type:`.
+/// After initialized, a directory is created based on the `path` to hold key-value data.
+/// Once initialized you should not read or write this directory without the instance.
+///
+/// The instance of this class is *NOT* thread safe, you need to make sure
+/// that there's only one thread to access the instance at the same time. If you really
+/// need to process large amounts of data in multi-thread, you should split the data
+/// to multiple KVStorage instance (sharding).
+class YYKVStorageSwift {
+    
+    /// The path of this storage.
     let path: URL
+    
+    /// The type of this storage.
     let type: YYKVStorageType
     
+    /// Set `YES` to enable error logs for debug.
     var errorLogsEnabled: Bool
     
     private let trashQueue: DispatchQueue
@@ -65,9 +75,9 @@ class YYKVStorage {
     init?(path: URL, type: YYKVStorageType) {
         self.path = path
         self.type = type
-        dataPath = path.appendingPathComponent(YYKVConstParams.kDataDirectoryName)
-        trashPath = path.appendingPathComponent(YYKVConstParams.kTrashDirectoryName)
-        dbPath = path.appendingPathComponent(YYKVConstParams.kDBFileName).path
+        dataPath = path.appendingPathComponent(KVConstParams.kDataDirectoryName)
+        trashPath = path.appendingPathComponent(KVConstParams.kTrashDirectoryName)
+        dbPath = path.appendingPathComponent(KVConstParams.kDBFileName).path
         trashQueue = DispatchQueue.init(label: "com.ibireme.cache.disk.trash")
         errorLogsEnabled = true
         do {
@@ -91,7 +101,7 @@ class YYKVStorage {
     }
     
     convenience init?(path: String, type: YYKVStorageType) {
-        guard path.count > 0, path.count <= YYKVConstParams.kPathLengthMax else {
+        guard path.count > 0, path.count <= KVConstParams.kPathLengthMax else {
             debugPrint("YYKVStorage init error: invalid path: ", path)
             return nil
         }
@@ -359,7 +369,7 @@ class YYKVStorage {
 
 
 // MARK: db
-private extension YYKVStorage {
+private extension YYKVStorageSwift {
     @discardableResult
     func dbOpen() -> Bool {
         guard db == nil else { return true }
@@ -405,8 +415,8 @@ private extension YYKVStorage {
     @discardableResult
     func dbCheck() -> Bool {
         guard db == nil else { return true }
-        guard dbOpenErrorCount < YYKVConstParams.kMaxErrorRetryCount,
-              CACurrentMediaTime() - dbLastOpenErrorTime > YYKVConstParams.kMinRetryTimeInterval else {
+        guard dbOpenErrorCount < KVConstParams.kMaxErrorRetryCount,
+              CACurrentMediaTime() - dbLastOpenErrorTime > KVConstParams.kMinRetryTimeInterval else {
             return false
         }
         return dbOpen() && dbInitialize()
@@ -824,7 +834,7 @@ private extension YYKVStorage {
 }
 
 // MARK: file
-private extension YYKVStorage {
+private extension YYKVStorageSwift {
     @discardableResult
     func fileWrite(filename: String, data: Data) -> Bool {
         do {
@@ -873,7 +883,18 @@ private extension YYKVStorage {
 }
 
 // MARK: private
-private extension YYKVStorage {
+private extension YYKVStorageSwift {
+    struct KVConstParams {
+        static let kMaxErrorRetryCount: UInt = 8
+        static let kMinRetryTimeInterval: TimeInterval = 2.0
+        static let kPathLengthMax = Int(PATH_MAX - 64)
+        static let kDBFileName = "manifest.sqlite"
+        static let kDBShmFileName = "manifest.sqlite-shm"
+        static let kDBWalFileName = "manifest.sqlite-wal"
+        static let kDataDirectoryName = "data"
+        static let kTrashDirectoryName = "trash"
+    }
+    
     func log<T>(_ message: T, filePath: String = #file, line: Int = #line, methodName: String = #function) {
         guard errorLogsEnabled else { return }
         let fileName = (filePath as NSString).lastPathComponent
@@ -882,10 +903,17 @@ private extension YYKVStorage {
     }
     
     func reset() {
-        try? FileManager.default.removeItem(at: path.appendingPathComponent(YYKVConstParams.kDBFileName))
-        try? FileManager.default.removeItem(at: path.appendingPathComponent(YYKVConstParams.kDBShmFileName))
-        try? FileManager.default.removeItem(at: path.appendingPathComponent(YYKVConstParams.kDBWalFileName))
+        try? FileManager.default.removeItem(at: path.appendingPathComponent(KVConstParams.kDBFileName))
+        try? FileManager.default.removeItem(at: path.appendingPathComponent(KVConstParams.kDBShmFileName))
+        try? FileManager.default.removeItem(at: path.appendingPathComponent(KVConstParams.kDBWalFileName))
         fileMoveAllToTrash()
         fileEmptyTrashInBackground()
+    }
+}
+
+private extension YYKVStorageSwift {
+    static var YYSharedApplication: UIApplication? {
+        let isAppExtension = Bundle.main.bundlePath.hasSuffix(".appex")
+        return isAppExtension ? nil : UIApplication.shared
     }
 }

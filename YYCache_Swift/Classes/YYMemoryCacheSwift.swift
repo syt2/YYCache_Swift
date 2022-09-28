@@ -7,29 +7,70 @@
 
 import Foundation
 
-class YYMemoryCacheSwift {
-    var name: String?
-    private(set) var titalCount: UInt = 0
-    private(set) var totalCost: UInt = 0
 
-    var countLimit: UInt = .max
-    var costLimit: UInt = .max
-    var ageLimit: TimeInterval = .infinity
-    var autoTrimInterval: TimeInterval = 5
-    var shouldRemoveAllObjectsOnMemoryWarning: Bool = true
-    var shouldRemoveAllObjectsWhenEnteringBackground: Bool = true
-    var didReceiveMemoryWarningClosure: ((YYMemoryCacheSwift) -> Void)?
-    var didEnterBackgroundClosure: ((YYMemoryCacheSwift) -> Void)?
+///  YYMemoryCache is a fast in-memory cache that stores key-value pairs.
+///
+/// - It uses LRU (least-recently-used) to remove objects;
+/// - It can be controlled by cost, count and age;
+/// - It can be configured to automatically evict objects when receive memory warning or app enter background.
+/// The time of `Access Methods` in YYMemoryCache is typically in constant time (O(1)).
+public class YYMemoryCacheSwift {
+    
+    /// The name of the cache. Default is nil.
+    var name: String?
+    
+    /// The maximum number of objects the cache should hold.
+    ///
+    /// The default value is .max, which means no limit.
+    /// This is not a strict limit—if the cache goes over the limit,
+    /// some objects in the cache could be evicted later in backgound thread.
+    public var countLimit: UInt = .max
+    
+    /// The maximum total cost that the cache can hold before it starts evicting objects.
+    ///
+    /// The default value is .max, which means no limit.
+    /// This is not a strict limit—if the cache goes over the limit,
+    /// some objects in the cache could be evicted later in backgound thread.
+    public var costLimit: UInt = .max
+    
+    /// The maximum expiry time of objects in cache.
+    ///
+    /// The default value is .infinity, which means no limit.
+    /// This is not a strict limit—if an object goes over the limit,
+    /// the object could be evicted later in backgound thread.
+    public var ageLimit: TimeInterval = .infinity
+    
+    /// The auto trim check time interval in seconds. Default is 5.0.
+    ///
+    /// The cache holds an internal timer to check whether the cache reaches its limits,
+    /// and if the limit is reached, it begins to evict objects.
+    public var autoTrimInterval: TimeInterval = 5
+    
+    /// If `true`, the cache will remove all objects when the app receives a memory warning.
+    /// The default value is `true`.
+    public var shouldRemoveAllObjectsOnMemoryWarning: Bool = true
+    
+    /// If `true`, The cache will remove all objects when the app enter background.
+    /// The default value is `true`.
+    public var shouldRemoveAllObjectsWhenEnteringBackground: Bool = true
+    
+    /// A closure to be executed when the app receives a memory warning.
+    /// The default value is nil.
+    public var didReceiveMemoryWarningClosure: ((YYMemoryCacheSwift) -> Void)?
+    
+    /// A closure to be executed when the app enter background.
+    /// The default value is nil.
+    public var didEnterBackgroundClosure: ((YYMemoryCacheSwift) -> Void)?
     
     private var lock = pthread_mutex_t()
     private var lru = YYLinkMap()
     private var queue = DispatchQueue(label: "com.ibireme.cache.memory")
     
-    init() {
+    public init() {
         pthread_mutex_init(&lock, nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(appDidReceiveMemoryWarningNotification), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackgroundNotification), name: UIApplication.didEnterBackgroundNotification, object: nil)
-        trimRecursively()
+        NotificationCenter.default.addObserver(self, selector: #selector(_appDidReceiveMemoryWarningNotification), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(_appDidEnterBackgroundNotification), name: UIApplication.didEnterBackgroundNotification, object: nil)
+        _trimRecursively()
     }
     
     deinit {
@@ -38,15 +79,23 @@ class YYMemoryCacheSwift {
         lru.removeAll()
         pthread_mutex_destroy(&lock)
     }
-    
+}
+
+// MARK: public
+public extension YYMemoryCacheSwift {
+    ///  The number of objects in the cache.
     var count: UInt {
         around(lru.totalCount)
     }
     
+    /// The total cost of objects in the cache.
     var cost: UInt {
         around(lru.totalCost)
     }
-
+    
+    /// Returns a Boolean value that indicates whether a given key is in cache.
+    /// - Parameter key: An object identifying the value.
+    /// - Returns: Whether the key is in cache.
     func contains(key: AnyHashable) -> Bool {
         around(lru.dict.keys.contains(key))
     }
@@ -56,6 +105,9 @@ class YYMemoryCacheSwift {
         get { get(key: key) }
     }
     
+    /// Returns the value associated with a given key.
+    /// - Parameter key: An object identifying the value
+    /// - Returns: The value associated with key, or nil if no value is associated with key.
     func get(key: AnyHashable) -> Any? {
         around {
             guard let node = lru.dict[key] else { return nil }
@@ -64,7 +116,12 @@ class YYMemoryCacheSwift {
             return node.value
         }
     }
-
+    
+    /// Sets the value of the specified key in the cache (0 cost).
+    /// - Parameters:
+    ///   - value: The object to be stored in the cache. If nil, it calls `remove(forKey:)`.
+    ///   - key: The key with which to associate the value
+    ///   - cost:  The cost with which to associate the key-value pair.
     func update(value: Any?, forKey key: AnyHashable, cost: UInt = 0) {
         guard let value = value else {
             remove(forKey: key)
@@ -91,29 +148,40 @@ class YYMemoryCacheSwift {
             }
         }
     }
-
+    
+    /// Removes the value of the specified key in the cache.
+    /// - Parameter key: The key identifying the value to be removed.
     func remove(forKey key: AnyHashable) {
         around {
             guard let node = lru.dict[key] else { return }
             lru.remove(node: node)
         }
     }
-
+    
+    /// Empties the cache immediately.
     func removeAll() {
         around(lru.removeAll())
     }
+    
 }
 
 // MARK: trim
-extension YYMemoryCacheSwift {
+public extension YYMemoryCacheSwift {
+    
+    /// Removes objects from the cache with LRU, until the `count` is below or equal to the specified value.
+    /// - Parameter count: The total count allowed to remain after the cache has been trimmed.
     func trim(count: UInt) {
         _trim(count: count)
     }
-
+    
+    /// Removes objects from the cache with LRU, until the `totalCost` is or equal to the specified value.
+    /// - Parameter cost: The total cost allowed to remain after the cache has been trimmed.
     func trim(cost: UInt) {
         _trim(cost: cost)
     }
-
+    
+    /// Removes objects from the cache with LRU, until all expiry objects removed by the specified value.
+    /// - Parameter age: The maximum age (in seconds) of objects.
     func trim(age: TimeInterval) {
         _trim(age: age)
     }
@@ -121,15 +189,15 @@ extension YYMemoryCacheSwift {
 
 
 private extension YYMemoryCacheSwift {
-    func trimRecursively() {
+    func _trimRecursively() {
         DispatchQueue.global().asyncAfter(deadline: .now() + autoTrimInterval) { [weak self] in
             guard let self = self else { return }
-            self.trimInBackground()
-            self.trimRecursively()
+            self._trimInBackground()
+            self._trimRecursively()
         }
     }
     
-    func trimInBackground() {
+    func _trimInBackground() {
         queue.async {
             self._trim(cost: self.costLimit)
             self._trim(count: self.countLimit)
@@ -210,14 +278,14 @@ private extension YYMemoryCacheSwift {
         } while !finish
     }
     
-    @objc func appDidReceiveMemoryWarningNotification() {
+    @objc func _appDidReceiveMemoryWarningNotification() {
         didReceiveMemoryWarningClosure?(self)
         if shouldRemoveAllObjectsOnMemoryWarning {
             removeAll()
         }
     }
     
-    @objc func appDidEnterBackgroundNotification() {
+    @objc func _appDidEnterBackgroundNotification() {
         didEnterBackgroundClosure?(self)
         if shouldRemoveAllObjectsWhenEnteringBackground {
             removeAll()
@@ -225,7 +293,7 @@ private extension YYMemoryCacheSwift {
     }
 }
 
-
+// MARK: lock
 private extension YYMemoryCacheSwift {
     @discardableResult
     func around<T>(_ closure: () throws -> T) rethrows -> T {
@@ -242,7 +310,8 @@ private extension YYMemoryCacheSwift {
     }
 }
 
-class YYLinkedMapNode {
+
+fileprivate class YYLinkedMapNode {
     weak var prev: YYLinkedMapNode?
     weak var next: YYLinkedMapNode?
     var key: AnyHashable
@@ -269,7 +338,7 @@ extension YYLinkedMapNode: Hashable {
 }
 
 
-class YYLinkMap {
+fileprivate class YYLinkMap {
     var dict: [AnyHashable: YYLinkedMapNode]
     var totalCost: UInt = 0
     var totalCount: UInt = 0

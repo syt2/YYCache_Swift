@@ -24,7 +24,7 @@ public class YYDiskCacheSwift {
     public var autoTrimInterval: TimeInterval = 60
     public var errorLogsEnabled: Bool = false
     
-    private var kvStroage: YYKVStorage?
+    private var kvStroage: YYKVStorageSwift?
     private var semaphore = DispatchSemaphore(value: 1)
     private var queue: DispatchQueue = DispatchQueue(label: "com.ibireme.cache.disk", attributes: .concurrent)
     
@@ -51,7 +51,7 @@ public class YYDiskCacheSwift {
         default:
             type = .mixed
         }
-        guard let kv = YYKVStorage(path: path, type: type) else {
+        guard let kv = YYKVStorageSwift(path: path, type: type) else {
             return nil
         }
         let instance = YYDiskCacheSwift(path: path, inlineThreshold: inlineThreshold)

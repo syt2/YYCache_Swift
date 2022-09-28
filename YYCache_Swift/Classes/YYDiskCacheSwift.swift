@@ -21,12 +21,12 @@ public class YYDiskCacheSwift {
     public var costLimit: UInt = .max
     public var ageLimit: TimeInterval = .infinity
     public var freeDiskSpaceLimit: UInt = 0
-    public var autoTrimInterval: Int = 60
+    public var autoTrimInterval: TimeInterval = 60
     public var errorLogsEnabled: Bool = false
     
     private var kvStroage: YYKVStorage?
     private var semaphore = DispatchSemaphore(value: 1)
-    private var queue: DispatchQueue = DispatchQueue(label: "com.ibireme.cache.disk", qos: .background, attributes: .concurrent)
+    private var queue: DispatchQueue = DispatchQueue(label: "com.ibireme.cache.disk", attributes: .concurrent)
     
     private init(path: URL, inlineThreshold: UInt) {
         self.path = path
@@ -326,7 +326,7 @@ private extension YYDiskCacheSwift {
 // MARK: private
 private extension YYDiskCacheSwift {
     func _trimRecursively() {
-        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + .seconds(autoTrimInterval)) { [weak self] in
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + autoTrimInterval) { [weak self] in
             guard let self = self else { return }
             self._trimInBackground()
             self._trimRecursively()

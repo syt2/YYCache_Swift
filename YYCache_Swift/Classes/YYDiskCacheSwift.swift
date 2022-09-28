@@ -10,7 +10,7 @@ import UIKit
 import CommonCrypto
 
 public class YYDiskCacheSwift {
-    public let path: String
+    public let path: URL
     public let inlineThreshold: UInt
     
     public var customArchiveBlock: ((AnyObject) -> Data)?
@@ -28,8 +28,7 @@ public class YYDiskCacheSwift {
     private var semaphore = DispatchSemaphore(value: 1)
     private var queue: DispatchQueue = DispatchQueue(label: "com.ibireme.cache.disk", qos: .background, attributes: .concurrent)
     
-    private init(path: String, inlineThreshold: UInt) {
-
+    private init(path: URL, inlineThreshold: UInt) {
         self.path = path
         self.inlineThreshold = inlineThreshold
         NotificationCenter.default.addObserver(self, selector: #selector(_appWillBeTerminated), name: UIApplication.willTerminateNotification, object: nil)
@@ -39,7 +38,7 @@ public class YYDiskCacheSwift {
         NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
     }
     
-    public static func instance(path: String, inlineThreshold: UInt = 20 * 1024) -> YYDiskCacheSwift? {
+    public static func instance(path: URL, inlineThreshold: UInt = 20 * 1024) -> YYDiskCacheSwift? {
         if let globalCache = YYDiskCacheGetGlobal(path: path) {
             return globalCache
         }
@@ -290,19 +289,18 @@ private extension YYDiskCacheSwift {
     private static let globalInstancesLock = DispatchSemaphore(value: 1)
     private static var globalInstances = [String: () -> YYDiskCacheSwift?]()
     
-    static func YYDiskCacheGetGlobal(path: String) -> YYDiskCacheSwift? {
-        guard !path.isEmpty else { return nil }
-        return globalInstancesLock.around(globalInstances[path]?())
+    static func YYDiskCacheGetGlobal(path: URL) -> YYDiskCacheSwift? {
+        return globalInstancesLock.around(globalInstances[path.absoluteString]?())
     }
     
     static func YYDiskCacheSetGlobal(cache: YYDiskCacheSwift?) {
-        guard let path = cache?.path, !path.isEmpty else { return }
+        guard let path = cache?.path else { return }
         globalInstancesLock.around {
             guard let cache = cache else {
-                globalInstances.removeValue(forKey: path)
+                globalInstances.removeValue(forKey: path.absoluteString)
                 return
             }
-            globalInstances[path] = { [weak cache] in cache }
+            globalInstances[path.absoluteString] = { [weak cache] in cache }
         }
     }
     

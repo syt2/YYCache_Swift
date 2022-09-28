@@ -33,7 +33,7 @@ public class YYCacheSwift {
               let cacheFolder = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true).first else {
             return nil
         }
-        let path = "\(cacheFolder)/\(name)"
+        let path = URL(fileURLWithPath: cacheFolder).appendingPathComponent(name)
         self.init(path: path)
     }
     
@@ -41,12 +41,11 @@ public class YYCacheSwift {
     /// Multiple instances with the same name will make the cache unstable.
     /// - Parameter name: Full path of a directory in which the cache will write data.
     ///                   Once initialized you should not read and write to this directory.
-    public init?(path: String) {
-        guard !path.isEmpty,
-              let diskCacheSwift = YYDiskCacheSwift.instance(path: path) else {
+    public init?(path: URL) {
+        guard let diskCacheSwift = YYDiskCacheSwift.instance(path: path) else {
             return nil
         }
-        let name = NSString(string: path).lastPathComponent
+        let name = path.lastPathComponent
         let memoryCache = YYMemoryCache()
         memoryCache.name = name
         self.name = name
@@ -69,7 +68,7 @@ public class YYCacheSwift {
     /// - Parameter path: Full path of a directory in which the cache will write data.
     ///                   Once initialized you should not read and write to this directory.
     /// - Returns: A new cache object, or nil if an error occurs.
-    public static func cache(path: String) -> YYCacheSwift? {
+    public static func cache(path: URL) -> YYCacheSwift? {
         YYCacheSwift(path: path)
     }
 }

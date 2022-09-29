@@ -210,6 +210,8 @@ public extension YYCacheSwift {
     ///   - type: The type of the value you specify.
     ///   - key: A string identifying the value. If nil, just return nil.
     /// - Returns: The value associated with key, or nil if no value is associated with key.
+    /// - warning: make sure the value implement NSSecureCoding,
+    ///     otherwise the value can't parse success from sqlite.
     func get<T>(type: T.Type, key: String) -> T? where T: NSObject, T: NSCoding {
         if let object = memoryCache[key] as? T {
             return object
@@ -227,6 +229,8 @@ public extension YYCacheSwift {
     ///   - type: The type of the value you specify.
     ///   - key: A string identifying the value. If nil, just return nil.
     ///   - completion: A closure which will be invoked in background queue when finished.
+    /// - warning: make sure the value implement NSSecureCoding,
+    ///     otherwise the value can't parse success from sqlite.
     func get<T>(type: T.Type, key: String, completion: @escaping (String, T?) -> Void) where T: NSObject, T: NSCoding {
         if let object = memoryCache[key] as? T {
             DispatchQueue.global().async {
@@ -246,7 +250,9 @@ public extension YYCacheSwift {
     /// This method may blocks the calling thread until file write finished.
     /// - Parameters:
     ///   - key: The key with which to associate the value.
-    ///   - value: The object to be stored in the cache. If nil, it calls `removeObjectForKey:`.
+    ///   - value: The object to be stored in the cache. If nil, it calls `removeObject()`.
+    /// - warning: make sure the value implement NSSecureCoding,
+    ///     otherwise the value can't parse success from sqlite.
     func set<T>(key: String, value: T?) where T: NSObject, T: NSCoding {
         memoryCache[key] = value
         diskCacheSwift.set(key: key, value: value)
@@ -256,8 +262,10 @@ public extension YYCacheSwift {
     /// This method returns immediately and invoke the passed block in background queue when the operation finished.
     /// - Parameters:
     ///   - key: A string identifying the value.
-    ///   - value: The object to be stored in the cache. If nil, it calls `removeObjectForKey:`.
+    ///   - value: The object to be stored in the cache. If nil, it calls `removeObject():`.
     ///   - completion: A closure which will be invoked in background queue when finished.
+    /// - warning: make sure the value implement NSSecureCoding,
+    ///     otherwise the value can't parse success from sqlite.
     func set<T>(key: String, value: T?, completion: (() -> Void)?) where T: NSObject, T: NSCoding {
         memoryCache[key] = value
         diskCacheSwift.set(key: key, value: value, completion: completion)

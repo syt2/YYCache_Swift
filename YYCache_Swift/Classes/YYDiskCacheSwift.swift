@@ -305,6 +305,8 @@ public extension YYDiskCacheSwift {
     ///   - type: The type of the value you specify.
     ///   - key: A string identifying the value.
     /// - Returns: The value associated with key, or nil if no value is associated with key.
+    /// - warning: make sure the value implement NSSecureCoding,
+    ///     otherwise the value can't parse success.
     func get<T>(type: T.Type, key: String) -> T? where T: NSObject, T: NSCoding {
         guard let item = semaphore.around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
         let object = try? NSKeyedUnarchiver.unarchivedObject(ofClass: T.self, from: data)
@@ -320,6 +322,8 @@ public extension YYDiskCacheSwift {
     ///   - type: The type of the value you specify.
     ///   - key: A string identifying the value.
     ///   - completion: A closure which will be invoked in background queue when finished.
+    /// - warning: make sure the value implement NSSecureCoding,
+    ///     otherwise the value can't parse success.
     func get<T>(type: T.Type, key: String, completion: @escaping (String, T?) -> Void) where T: NSObject, T: NSCoding {
         queue.async { [weak self] in
             completion(key, self?.get(type: type, key: key))
@@ -331,6 +335,8 @@ public extension YYDiskCacheSwift {
     /// - Parameters:
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
+    /// - warning: make sure the value implement NSSecureCoding,
+    ///     otherwise the value can't parse success.
     func set<T>(key: String, value: T?) where T: NSObject, T: NSCoding {
         guard let newValue = value else {
             remove(key: key)
@@ -354,6 +360,8 @@ public extension YYDiskCacheSwift {
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
     ///   - completion: A closure which will be invoked in background queue when finished.
+    /// - warning: make sure the value implement NSSecureCoding,
+    ///     otherwise the value can't parse success.
     func set<T>(key: String, value: T?, completion: (() -> Void)?) where T: NSObject, T: NSCoding {
         queue.async { [weak self] in
             self?.set(key: key, value: value)

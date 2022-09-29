@@ -474,6 +474,17 @@ private extension YYKVStorageSwift {
         }
     }
     
+    func dbBindBlob<T>(stmt: OpaquePointer!, bindIndex: Int32, data: Data?, completion: () throws -> T) rethrows -> T {
+        guard let data = data else {
+            sqlite3_bind_blob(stmt, bindIndex, nil, 0, nil)
+            return try completion()
+        }
+        return try data.withUnsafeBytes {
+            sqlite3_bind_blob(stmt, bindIndex, $0.baseAddress, Int32(data.count), nil)
+            return try completion()
+        }
+    }
+    
     @discardableResult
     func dbSave(key: String, value: Data, filename: String?, extendedData: Data?) -> Bool {
         let sql = "insert or replace into manifest (key, filename, size, inline_data, modification_time, last_access_time, extended_data) values (?1, ?2, ?3, ?4, ?5, ?6, ?7);"
@@ -482,15 +493,12 @@ private extension YYKVStorageSwift {
         sqlite3_bind_text(stmt, 1, key, -1, nil)
         sqlite3_bind_text(stmt, 2, filename, -1, nil)
         sqlite3_bind_int(stmt, 3, Int32(value.count))
-        if filename?.isEmpty == false {
-            sqlite3_bind_blob(stmt, 4, nil, 0, nil)
-        } else {
-            sqlite3_bind_blob(stmt, 4, value.withUnsafeBytes { $0.baseAddress }, Int32(value.count), nil)
-        }
         sqlite3_bind_int(stmt, 5, timestamp)
         sqlite3_bind_int(stmt, 6, timestamp)
-        sqlite3_bind_blob(stmt, 7, extendedData?.withUnsafeBytes { $0.baseAddress }, Int32(extendedData?.count ?? 0), nil)
-        let result = sqlite3_step(stmt)
+        let result = dbBindBlob(stmt: stmt, bindIndex: 4,
+                              data: filename?.isEmpty == false ? nil : value) {
+            dbBindBlob(stmt: stmt, bindIndex: 7, data: extendedData) { sqlite3_step(stmt) }
+        }
         if result != SQLITE_DONE {
             log("sqlite insert error (\(result)): \(String(describing: sqlite3_errmsg(db)))")
             return false

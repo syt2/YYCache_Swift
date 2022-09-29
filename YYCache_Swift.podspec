@@ -31,7 +31,7 @@ TODO: Add long description of the pod here.
   s.ios.deployment_target = '11.0'
   s.requires_arc = true
   s.source_files = 'YYCache_Swift/Classes/**/*', "YYCache_Swift/Classes/*.{swift,h,m}"
-  s.public_header_files = 'YYCache_Swift/Classes/**/*.h', "YYCache_Swift/Classes/*.h"
+#  s.public_header_files = 'YYCache_Swift/Classes/**/*.h', "YYCache_Swift/Classes/*.h"
   s.swift_version = '5.0'
 
   s.libraries = 'sqlite3'

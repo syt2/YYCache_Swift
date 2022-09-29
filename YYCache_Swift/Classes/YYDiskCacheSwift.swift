@@ -12,9 +12,6 @@ import CommonCrypto
 public class YYDiskCacheSwift {
     public let path: URL
     public let inlineThreshold: UInt
-    
-    public var customArchiveBlock: ((AnyObject) -> Data)?
-    public var customUnarchiveBlock: ((Data) -> AnyObject)?
     public var customFileNameBlock: ((String) -> String)?
     
     public var countLimit: UInt = .max
@@ -184,7 +181,7 @@ public extension YYDiskCacheSwift {
 public extension YYDiskCacheSwift {
     func get<T>(type: T.Type, key: String) -> T? where T: NSObject, T: NSCoding {
         guard let item = semaphore.around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
-        let object = (customUnarchiveBlock?(data) ?? (try? NSKeyedUnarchiver.unarchivedObject(ofClass: T.self, from: data))) as? T
+        let object = try? NSKeyedUnarchiver.unarchivedObject(ofClass: T.self, from: data)
         if let object = object, let extData = item.extendedData {
             Self.setExtendedData(extData, to: object)
         }
@@ -203,7 +200,7 @@ public extension YYDiskCacheSwift {
             return
         }
         
-        guard let value = customArchiveBlock?(newValue) ?? (try? NSKeyedArchiver.archivedData(withRootObject: T.self, requiringSecureCoding: false)) else { return }
+        guard let value = try? NSKeyedArchiver.archivedData(withRootObject: T.self, requiringSecureCoding: false) else { return }
         let extData = Self.getExtendedData(object: newValue)
         var filename: String? = nil
         if kvStroage?.type != .SQLite && value.count > inlineThreshold {

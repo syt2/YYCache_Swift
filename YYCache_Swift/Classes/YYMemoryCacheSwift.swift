@@ -62,11 +62,6 @@ public class YYMemoryCacheSwift {
     /// The default value is nil.
     public var didEnterBackgroundClosure: ((YYMemoryCacheSwift) -> Void)?
     
-    
-    private var _releaseOnMainThread: Bool = false
-    
-    private var _releaseAsynchronously: Bool = true
-    
     private var lock = pthread_mutex_t()
     private var lru = YYLinkMap()
     private var queue = DispatchQueue(label: "com.ibireme.cache.memory")
@@ -150,10 +145,10 @@ public extension YYMemoryCacheSwift {
             }
             if lru.totalCount > countLimit {
                 guard let node = lru.removeTail() else { return }
-                if releaseAsynchronously {
-                    (releaseOnMainThread ? DispatchQueue.main : .global())
+                if lru.releaseAsynchronously {
+                    (lru.releaseOnMainThread ? DispatchQueue.main : .global())
                         .async { _ = node }
-                } else if releaseOnMainThread && pthread_main_np() != 0 {
+                } else if lru.releaseOnMainThread && pthread_main_np() != 0 {
                     DispatchQueue.main.async { _ = node }
                 }
             }
@@ -166,10 +161,13 @@ public extension YYMemoryCacheSwift {
         around {
             guard let node = lru.dict[key] else { return }
             lru.remove(node: node)
-            if releaseAsynchronously {
-                (releaseOnMainThread ? DispatchQueue.main : .global())
-                    .async { _ = node }
-            } else if releaseOnMainThread && pthread_main_np() != 0 {
+            
+            if lru.releaseAsynchronously {
+                let queue = lru.releaseOnMainThread ? DispatchQueue.main : .global()
+                queue.async {
+                    _ = node
+                }
+            } else if lru.releaseOnMainThread && pthread_main_np() != 0 {
                 DispatchQueue.main.async { _ = node }
             }
         }
@@ -184,8 +182,8 @@ public extension YYMemoryCacheSwift {
     /// If `true`, the key-value pair will be released asynchronously to avoid blocking the access methods,
     /// otherwise it will be released in the access method (such as remove). Default is YES.
     var releaseAsynchronously: Bool {
-        get { around(_releaseAsynchronously) }
-        set { around(_releaseAsynchronously = newValue) }
+        get { around(lru.releaseAsynchronously) }
+        set { around(lru.releaseAsynchronously = newValue) }
     }
     
     /// If `true`, the key-value pair will be released on main thread,
@@ -193,8 +191,8 @@ public extension YYMemoryCacheSwift {
     /// You may set this value to `true` if the key-value object contains
     /// the instance which should be released in main thread (such as UIView/CALayer).
     var releaseOnMainThread: Bool {
-        get { around(_releaseOnMainThread) }
-        set { around(_releaseOnMainThread = newValue)}
+        get { around(lru.releaseOnMainThread) }
+        set { around(lru.releaseOnMainThread = newValue)}
     }
     
 }
@@ -442,7 +440,7 @@ fileprivate class YYLinkMap {
         tail = nil
         guard dict.count > 0 else { return }
         let holder = dict
-        dict.removeAll()
+        dict = [:]
         if releaseAsynchronously {
             (releaseOnMainThread ? DispatchQueue.main : .global())
                 .async { _ = holder }

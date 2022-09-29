@@ -10,18 +10,16 @@
 		191BCFD9B77812806B2AD02D7ACCB15D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06504E4EC7889E5B16BB22DFCFB827E4 /* UIKit.framework */; };
 		3C416014C593F301393D415546711678 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97F4DAF5578ADF7AB8A413862C895E74 /* Foundation.framework */; };
 		3D71D54AD1192656DE0C67E82C8B50B0 /* Pods-YYCache_Swift_Tests-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = B0FFF6F38293896177ED7A79D4E9453F /* Pods-YYCache_Swift_Tests-dummy.m */; };
-		440DED6A2D9E810034D4362CDCA68DA9 /* YYKVStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 4E0B095AC562FCAC169E00ED3A438630 /* YYKVStorage.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		50A130C7810CA8AD0E2DBCF82CD962CD /* Pods-YYCache_Swift_Example-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 27BC510BD9FB0C79958D4855363FE6D9 /* Pods-YYCache_Swift_Example-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		5D5ECADC28E43F4600FF57D3 /* YYMemoryCacheSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D5ECADB28E43F4500FF57D3 /* YYMemoryCacheSwift.swift */; };
+		5D60618328E14CAD00FBD576 /* YYKVStorgeSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D60618228E14CAD00FBD576 /* YYKVStorgeSwift.swift */; };
 		5DA90AA028E1491C00E6857A /* DispatchSemaphore+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA90A9F28E1491C00E6857A /* DispatchSemaphore+Extensions.swift */; };
 		66E7A9E46944B68A94B90B4467B9BEE3 /* YYCache_Swift-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 5ADF0F3EC842338565CBFAA9E3291F24 /* YYCache_Swift-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		673F7F6DBC52E543D3977DD9899AAB02 /* Pods-YYCache_Swift_Tests-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = DD56CBC61FDD337C3FBD930C5F1F5E78 /* Pods-YYCache_Swift_Tests-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		698433D43FD1FF50AF8FDC02ADE4F1D8 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FDD50CFD2B3CBA8D9B0674C9001AA086 /* QuartzCore.framework */; };
-		762204A8F16752FEF8B8E1265BE3F5B6 /* YYMemoryCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 866B5D4FA8D6F130215A72EDEE1945FF /* YYMemoryCache.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7EE36127A4C1A732232D3B1A5388FFDB /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97F4DAF5578ADF7AB8A413862C895E74 /* Foundation.framework */; };
 		900E4DBAA3B2A1149FECC59AA1104740 /* YYCacheSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBB3BE186F47A4318026A6D025D90C88 /* YYCacheSwift.swift */; };
-		90E6AA5D478242DAFC0CFE8136A15744 /* YYKVStorage.m in Sources */ = {isa = PBXBuildFile; fileRef = 207E7EA931BE8288446C24931D382FD3 /* YYKVStorage.m */; };
 		991AFD555F05928B5E8345C46F06EED9 /* Pods-YYCache_Swift_Example-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = A615096CD1293DE503B48EFD3F217DD5 /* Pods-YYCache_Swift_Example-dummy.m */; };
-		D87462E00069448D2BBD0358A9EB89F4 /* YYMemoryCache.m in Sources */ = {isa = PBXBuildFile; fileRef = E5BE5229350DECFF4C9228DBAA7C45F9 /* YYMemoryCache.m */; };
 		D92D64029BE7ED3C20159C124A9D0741 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F16B79825CE7B6A26E2A1CD386CAA6C /* CoreFoundation.framework */; };
 		E1AB16C4814305557C1E51DFE585DB81 /* YYDiskCacheSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45F983278FF6941825B16AC6B264E5C8 /* YYDiskCacheSwift.swift */; };
 		FC2766B15566C08E5A7AE4D6283D933A /* YYCache_Swift-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 724748285A3972594FA3B722090F2DC8 /* YYCache_Swift-dummy.m */; };
@@ -51,22 +49,21 @@
 		0D2C76F8E2BB510B96CDE9198C9810EE /* Pods-YYCache_Swift_Example-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-YYCache_Swift_Example-acknowledgements.markdown"; sourceTree = "<group>"; };
 		1E22627DE23F9219B243BE0ADAB2AE5A /* YYCache_Swift.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = YYCache_Swift.debug.xcconfig; sourceTree = "<group>"; };
 		1F16B79825CE7B6A26E2A1CD386CAA6C /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/CoreFoundation.framework; sourceTree = DEVELOPER_DIR; };
-		207E7EA931BE8288446C24931D382FD3 /* YYKVStorage.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = YYKVStorage.m; path = YYCache_Swift/Classes/YYKVStorage.m; sourceTree = "<group>"; };
 		27BC510BD9FB0C79958D4855363FE6D9 /* Pods-YYCache_Swift_Example-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-YYCache_Swift_Example-umbrella.h"; sourceTree = "<group>"; };
 		28036380F48031A53627A8C9124C02DF /* YYCache_Swift.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = YYCache_Swift.release.xcconfig; sourceTree = "<group>"; };
 		2BE77BC67C378901EF6E8A6157EBA848 /* Pods-YYCache_Swift_Example */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "Pods-YYCache_Swift_Example"; path = Pods_YYCache_Swift_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4080DD10A2E42353A275EF57EBAC9522 /* Pods-YYCache_Swift_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-YYCache_Swift_Example.release.xcconfig"; sourceTree = "<group>"; };
 		45F983278FF6941825B16AC6B264E5C8 /* YYDiskCacheSwift.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = YYDiskCacheSwift.swift; path = YYCache_Swift/Classes/YYDiskCacheSwift.swift; sourceTree = "<group>"; };
 		4745C7C5402744A84249787541FCD2AE /* Pods-YYCache_Swift_Example-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-YYCache_Swift_Example-acknowledgements.plist"; sourceTree = "<group>"; };
-		4E0B095AC562FCAC169E00ED3A438630 /* YYKVStorage.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = YYKVStorage.h; path = YYCache_Swift/Classes/YYKVStorage.h; sourceTree = "<group>"; };
 		5665F582E72BA615755CF76BAD83CE87 /* Pods-YYCache_Swift_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-YYCache_Swift_Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		5ADF0F3EC842338565CBFAA9E3291F24 /* YYCache_Swift-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "YYCache_Swift-umbrella.h"; sourceTree = "<group>"; };
 		5B174A0677041FB6B40DBA30ABE3A7C5 /* Pods-YYCache_Swift_Example-frameworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-YYCache_Swift_Example-frameworks.sh"; sourceTree = "<group>"; };
+		5D5ECADB28E43F4500FF57D3 /* YYMemoryCacheSwift.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = YYMemoryCacheSwift.swift; path = YYCache_Swift/Classes/YYMemoryCacheSwift.swift; sourceTree = "<group>"; };
+		5D60618228E14CAD00FBD576 /* YYKVStorgeSwift.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = YYKVStorgeSwift.swift; path = YYCache_Swift/Classes/YYKVStorgeSwift.swift; sourceTree = "<group>"; };
 		5DA90A9F28E1491C00E6857A /* DispatchSemaphore+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "DispatchSemaphore+Extensions.swift"; path = "YYCache_Swift/Classes/DispatchSemaphore+Extensions.swift"; sourceTree = "<group>"; };
 		6138C0C45BC16D38722D87884406D142 /* Pods-YYCache_Swift_Tests-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-YYCache_Swift_Tests-acknowledgements.markdown"; sourceTree = "<group>"; };
 		724748285A3972594FA3B722090F2DC8 /* YYCache_Swift-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "YYCache_Swift-dummy.m"; sourceTree = "<group>"; };
 		7FCD709139AC26AA4298C2E31A86FEF2 /* Pods-YYCache_Swift_Tests-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-YYCache_Swift_Tests-acknowledgements.plist"; sourceTree = "<group>"; };
-		866B5D4FA8D6F130215A72EDEE1945FF /* YYMemoryCache.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = YYMemoryCache.h; path = YYCache_Swift/Classes/YYMemoryCache.h; sourceTree = "<group>"; };
 		8A41904B412DF2CF6B736202D2AB7E46 /* Pods-YYCache_Swift_Tests-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-YYCache_Swift_Tests-Info.plist"; sourceTree = "<group>"; };
 		97F4DAF5578ADF7AB8A413862C895E74 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
@@ -85,7 +82,6 @@
 		D5B70F5A4C962EBA9F14A4F1FD92BECE /* YYCache_Swift.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; path = YYCache_Swift.podspec; sourceTree = "<group>"; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		DC34C4C7E2B0F3A43A90A5B525E61C0C /* Pods-YYCache_Swift_Example.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-YYCache_Swift_Example.modulemap"; sourceTree = "<group>"; };
 		DD56CBC61FDD337C3FBD930C5F1F5E78 /* Pods-YYCache_Swift_Tests-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-YYCache_Swift_Tests-umbrella.h"; sourceTree = "<group>"; };
-		E5BE5229350DECFF4C9228DBAA7C45F9 /* YYMemoryCache.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = YYMemoryCache.m; path = YYCache_Swift/Classes/YYMemoryCache.m; sourceTree = "<group>"; };
 		EBB3BE186F47A4318026A6D025D90C88 /* YYCacheSwift.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = YYCacheSwift.swift; path = YYCache_Swift/Classes/YYCacheSwift.swift; sourceTree = "<group>"; };
 		FDD50CFD2B3CBA8D9B0674C9001AA086 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/QuartzCore.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
@@ -239,13 +235,11 @@
 		F770F0C98A4DAD7B0E235648043F7F78 /* YYCache_Swift */ = {
 			isa = PBXGroup;
 			children = (
+				5D5ECADB28E43F4500FF57D3 /* YYMemoryCacheSwift.swift */,
+				5D60618228E14CAD00FBD576 /* YYKVStorgeSwift.swift */,
 				5DA90A9F28E1491C00E6857A /* DispatchSemaphore+Extensions.swift */,
 				EBB3BE186F47A4318026A6D025D90C88 /* YYCacheSwift.swift */,
 				45F983278FF6941825B16AC6B264E5C8 /* YYDiskCacheSwift.swift */,
-				4E0B095AC562FCAC169E00ED3A438630 /* YYKVStorage.h */,
-				207E7EA931BE8288446C24931D382FD3 /* YYKVStorage.m */,
-				866B5D4FA8D6F130215A72EDEE1945FF /* YYMemoryCache.h */,
-				E5BE5229350DECFF4C9228DBAA7C45F9 /* YYMemoryCache.m */,
 				02633E2D045A155E412D08C82DC78931 /* Pod */,
 				41FA36CADB37FBB9F6908C600EBF24CE /* Support Files */,
 			);
@@ -261,8 +255,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				66E7A9E46944B68A94B90B4467B9BEE3 /* YYCache_Swift-umbrella.h in Headers */,
-				440DED6A2D9E810034D4362CDCA68DA9 /* YYKVStorage.h in Headers */,
-				762204A8F16752FEF8B8E1265BE3F5B6 /* YYMemoryCache.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -409,10 +401,10 @@
 			files = (
 				5DA90AA028E1491C00E6857A /* DispatchSemaphore+Extensions.swift in Sources */,
 				FC2766B15566C08E5A7AE4D6283D933A /* YYCache_Swift-dummy.m in Sources */,
+				5D60618328E14CAD00FBD576 /* YYKVStorgeSwift.swift in Sources */,
 				900E4DBAA3B2A1149FECC59AA1104740 /* YYCacheSwift.swift in Sources */,
 				E1AB16C4814305557C1E51DFE585DB81 /* YYDiskCacheSwift.swift in Sources */,
-				90E6AA5D478242DAFC0CFE8136A15744 /* YYKVStorage.m in Sources */,
-				D87462E00069448D2BBD0358A9EB89F4 /* YYMemoryCache.m in Sources */,
+				5D5ECADC28E43F4600FF57D3 /* YYMemoryCacheSwift.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

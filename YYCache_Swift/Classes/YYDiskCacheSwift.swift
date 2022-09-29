@@ -17,9 +17,8 @@ import CommonCrypto
 ///  - It can be configured to automatically evict objects when there's no free disk space.
 ///  - It can automatically decide the storage type (sqlite/file) for each object to get better performance.
 public class YYDiskCacheSwift {
-    
     /// The path of the cache.
-    public let path: String
+    public let path: URL
     
     /// If the object's data size (in bytes) is larger than this value, then object will be stored as a file, otherwise the object will be stored in sqlite.
     ///
@@ -28,11 +27,10 @@ public class YYDiskCacheSwift {
     public let inlineThreshold: UInt
     
     /// When an object needs to be saved as a file, this closure will be invoked to generate
-    /// a file name for a specified key. If the block is nil, the cache use md5(key) as default file name.
+    /// a file name for a specified key. If the block is nil, the cache use SHA256(key) as default file name.
     ///
     /// The default value is nil.
     public var customFileNameClosure: ((String) -> String)?
-    
     
     /// The maximum number of objects the cache should hold.
     ///
@@ -67,13 +65,13 @@ public class YYDiskCacheSwift {
     ///
     /// The cache holds an internal timer to check whether the cache reaches
     /// its limits, and if the limit is reached, it begins to evict objects.
-    public var autoTrimInterval: Int = 60
+    public var autoTrimInterval: TimeInterval = 60
     
-    private var kvStroage: YYKVStorage?
+    private var kvStroage: YYKVStorageSwift?
     private var semaphore = DispatchSemaphore(value: 1)
-    private var queue: DispatchQueue = DispatchQueue(label: "com.ibireme.cache.disk", qos: .background, attributes: .concurrent)
+    private var queue: DispatchQueue = DispatchQueue(label: "com.ibireme.cache.disk", attributes: .concurrent)
     
-    private init(path: String, inlineThreshold: UInt) {
+    private init(path: URL, inlineThreshold: UInt) {
         self.path = path
         self.inlineThreshold = inlineThreshold
         NotificationCenter.default.addObserver(self, selector: #selector(_appWillBeTerminated), name: UIApplication.willTerminateNotification, object: nil)
@@ -82,7 +80,8 @@ public class YYDiskCacheSwift {
     deinit {
         NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
     }
-
+    
+    /// get cache instance
     /// - Parameters:
     ///   - path: Full path of a directory in which the cache will write data. Once initialized you should not read and write to this directory.
     ///   - inlineThreshold: The data store inline threshold in bytes. If the object's data
@@ -93,7 +92,7 @@ public class YYDiskCacheSwift {
     /// - Returns: A new cache object, or nil if an error occurs.
     /// - warning: If the cache instance for the specified path already exists in memory,
     ///     this method will return it directly, instead of creating a new instance.
-    public static func instance(path: String, inlineThreshold: UInt = 20 * 1024) -> YYDiskCacheSwift? {
+    public static func instance(path: URL, inlineThreshold: UInt = 20 * 1024) -> YYDiskCacheSwift? {
         if let globalCache = YYDiskCacheGetGlobal(path: path) {
             return globalCache
         }
@@ -102,11 +101,11 @@ public class YYDiskCacheSwift {
         case 0:
             type = .file
         case .max:
-            type = .sqLite
+            type = .SQLite
         default:
             type = .mixed
         }
-        guard let kv = YYKVStorage(path: path, type: type) else {
+        guard let kv = YYKVStorageSwift(path: path, type: type) else {
             return nil
         }
         let instance = YYDiskCacheSwift(path: path, inlineThreshold: inlineThreshold)
@@ -124,7 +123,7 @@ public extension YYDiskCacheSwift {
     /// - Parameter key: A string identifying the value.
     /// - Returns: Whether the key is in cache.
     func contains(key: String) -> Bool {
-        semaphore.around(kvStroage?.itemExists(forKey: key) ?? false)
+        semaphore.around(kvStroage?.contains(key: key) ?? false)
     }
     
     /// Returns a boolean value with the block that indicates whether a given key is in cache.
@@ -145,7 +144,7 @@ public extension YYDiskCacheSwift {
     ///   - key: A string identifying the value.
     /// - Returns: The value associated with key, or nil if no value is associated with key.
     func get<T>(type: T.Type, key: String) -> T? where T: Codable {
-        guard let item = semaphore.around(kvStroage?.getItemForKey(key)), let data = item.value else { return nil }
+        guard let item = semaphore.around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
         let object = try? JSONDecoder().decode(T.self, from: data)
         if let object = object, let extData = item.extendedData {
             Self.setExtendedData(extData, to: object)
@@ -178,11 +177,11 @@ public extension YYDiskCacheSwift {
         guard let value = try? JSONEncoder().encode(newValue) else { return }
         let extData = Self.getExtendedData(object: newValue)
         var filename: String? = nil
-        if kvStroage?.type != .sqLite && value.count > inlineThreshold {
+        if kvStroage?.type != .SQLite && value.count > inlineThreshold {
             filename = _filename(key: key)
         }
         semaphore.around {
-            kvStroage?.saveItem(withKey: key, value: value, filename: filename, extendedData: extData)
+            kvStroage?.saveItem(key: key, value: value, filename: filename, extendedData: extData)
         }
     }
     
@@ -203,7 +202,7 @@ public extension YYDiskCacheSwift {
     /// This method may blocks the calling thread until file delete finished.
     /// - Parameter key: The key identifying the value to be removed.
     func remove(key: String) {
-        semaphore.around(kvStroage?.removeItem(forKey: key))
+        semaphore.around(kvStroage?.removeItem(key: key))
     }
     
     /// Removes the value of the specified key in the cache.
@@ -223,8 +222,7 @@ public extension YYDiskCacheSwift {
     func removeAll() {
         semaphore.around(kvStroage?.removeAllItems())
     }
-    
-    
+
     /// Empties the cache.
     /// This method returns immediately and invoke the passed block in background queue when the operation finished.
     /// - Parameter completion: A closure which will be invoked in background queue when finished.
@@ -249,7 +247,7 @@ public extension YYDiskCacheSwift {
             self.semaphore.around {
                 self.kvStroage?.removeAllItems {
                     progressCallback?(Int($0), Int($1))
-                } end: {
+                } completion: {
                     completion?($0)
                 }
             }
@@ -259,7 +257,7 @@ public extension YYDiskCacheSwift {
     /// The total objects count in this cache.
     /// This method may blocks the calling thread until file read finished.
     var totalCount: Int {
-        Int(semaphore.around(kvStroage?.getItemsCount()) ?? 0)
+        Int(semaphore.around(kvStroage?.count) ?? 0)
     }
     
     /// Get the number of objects in this cache.
@@ -274,7 +272,7 @@ public extension YYDiskCacheSwift {
     /// The total objects cost (in bytes) of objects in this cache.
     /// This method may blocks the calling thread until file read finished.
     var totalCost: Int {
-        Int(semaphore.around(kvStroage?.getItemsSize()) ?? 0)
+        Int(semaphore.around(kvStroage?.size) ?? 0)
     }
     
     ///Get the total cost (in bytes) of objects in this cache.
@@ -300,6 +298,7 @@ public extension YYDiskCacheSwift {
 
 // MARK: objc nscoding get/set
 public extension YYDiskCacheSwift {
+    
     /// Returns the value associated with a given key.
     /// This method may blocks the calling thread until file read finished.
     /// - Parameters:
@@ -307,7 +306,7 @@ public extension YYDiskCacheSwift {
     ///   - key: A string identifying the value.
     /// - Returns: The value associated with key, or nil if no value is associated with key.
     func get<T>(type: T.Type, key: String) -> T? where T: NSObject, T: NSCoding {
-        guard let item = semaphore.around(kvStroage?.getItemForKey(key)), let data = item.value else { return nil }
+        guard let item = semaphore.around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
         let object = try? NSKeyedUnarchiver.unarchivedObject(ofClass: T.self, from: data)
         if let object = object, let extData = item.extendedData {
             Self.setExtendedData(extData, to: object)
@@ -341,11 +340,11 @@ public extension YYDiskCacheSwift {
         guard let value = try? NSKeyedArchiver.archivedData(withRootObject: T.self, requiringSecureCoding: false) else { return }
         let extData = Self.getExtendedData(object: newValue)
         var filename: String? = nil
-        if kvStroage?.type != .sqLite && value.count > inlineThreshold {
+        if kvStroage?.type != .SQLite && value.count > inlineThreshold {
             filename = _filename(key: key)
         }
         semaphore.around {
-            kvStroage?.saveItem(withKey: key, value: value, filename: filename, extendedData: extData)
+            kvStroage?.saveItem(key: key, value: value, filename: filename, extendedData: extData)
         }
     }
     
@@ -467,19 +466,18 @@ private extension YYDiskCacheSwift {
     static let globalInstancesLock = DispatchSemaphore(value: 1)
     static var globalInstances = [String: () -> YYDiskCacheSwift?]()
     
-    static func YYDiskCacheGetGlobal(path: String) -> YYDiskCacheSwift? {
-        guard !path.isEmpty else { return nil }
-        return globalInstancesLock.around(globalInstances[path]?())
+    static func YYDiskCacheGetGlobal(path: URL) -> YYDiskCacheSwift? {
+        return globalInstancesLock.around(globalInstances[path.absoluteString]?())
     }
     
     static func YYDiskCacheSetGlobal(cache: YYDiskCacheSwift?) {
-        guard let path = cache?.path, !path.isEmpty else { return }
+        guard let path = cache?.path else { return }
         globalInstancesLock.around {
-            if cache == nil {
-                globalInstances.removeValue(forKey: path)
+            guard let cache = cache else {
+                globalInstances.removeValue(forKey: path.absoluteString)
                 return
             }
-            globalInstances[path] = { [weak cache] in cache }
+            globalInstances[path.absoluteString] = { [weak cache] in cache }
         }
     }
     
@@ -505,7 +503,7 @@ private extension YYDiskCacheSwift {
 // MARK: private
 private extension YYDiskCacheSwift {
     func _trimRecursively() {
-        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + .seconds(autoTrimInterval)) { [weak self] in
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + autoTrimInterval) { [weak self] in
             guard let self = self else { return }
             self._trimInBackground()
             self._trimRecursively()
@@ -526,12 +524,12 @@ private extension YYDiskCacheSwift {
     
     func _trim(cost: UInt) {
         guard costLimit < .max else { return }
-        kvStroage?.removeItems(toFitSize: Int32(Int(cost)))
+        kvStroage?.removeItems(toFitSize: Int(cost))
     }
     
     func _trim(count: UInt) {
         guard countLimit < .max else { return }
-        kvStroage?.removeItems(toFitCount: Int32(Int(count)))
+        kvStroage?.removeItems(toFitCount: Int(count))
     }
     
     func _trim(age: TimeInterval) {
@@ -543,12 +541,12 @@ private extension YYDiskCacheSwift {
         guard timestamp > ageLimit else { return }
         let age = Int32(timestamp - ageLimit)
         guard age < .max else { return }
-        kvStroage?.removeItemsEarlierThanTime(age)
+        kvStroage?.removeItems(earlierThanTime: Int(age))
     }
     
     func _trim(freeDiskSpace: UInt) {
         guard freeDiskSpace != 0 else { return }
-        guard let totalBytes = kvStroage?.getItemsSize(), totalBytes > 0 else { return }
+        guard let totalBytes = kvStroage?.size, totalBytes > 0 else { return }
         guard let diskFreeBytes = Self.YYDiskSpaceFree() else { return }
         let needTrimBytes = freeDiskSpace - diskFreeBytes
         guard needTrimBytes > 0 else { return }

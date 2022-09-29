@@ -1,6 +1,0 @@
-framework module YYCache_Swift {
-  umbrella header "YYCache_Swift-umbrella.h"
-
-  export *
-  module * { export * }
-}

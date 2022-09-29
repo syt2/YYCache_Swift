@@ -210,7 +210,7 @@ public extension YYCacheSwift {
     ///   - type: The type of the value you specify.
     ///   - key: A string identifying the value. If nil, just return nil.
     /// - Returns: The value associated with key, or nil if no value is associated with key.
-    func get<T>(type: T.Type, key: String) -> T? where T: NSObject, T: NSSecureCoding {
+    func get<T>(type: T.Type, key: String) -> T? where T: NSObject, T: NSCoding {
         if let object = memoryCache[key] as? T {
             return object
         }
@@ -227,7 +227,7 @@ public extension YYCacheSwift {
     ///   - type: The type of the value you specify.
     ///   - key: A string identifying the value. If nil, just return nil.
     ///   - completion: A closure which will be invoked in background queue when finished.
-    func get<T>(type: T.Type, key: String, completion: @escaping (String, T?) -> Void) where T: NSObject, T: NSSecureCoding {
+    func get<T>(type: T.Type, key: String, completion: @escaping (String, T?) -> Void) where T: NSObject, T: NSCoding {
         if let object = memoryCache[key] as? T {
             DispatchQueue.global().async {
                 completion(key, object)
@@ -247,7 +247,7 @@ public extension YYCacheSwift {
     /// - Parameters:
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `removeObjectForKey:`.
-    func set<T>(key: String, value: T?) where T: NSObject, T: NSSecureCoding {
+    func set<T>(key: String, value: T?) where T: NSObject, T: NSCoding {
         memoryCache[key] = value
         diskCacheSwift.set(key: key, value: value)
     }
@@ -258,7 +258,7 @@ public extension YYCacheSwift {
     ///   - key: A string identifying the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `removeObjectForKey:`.
     ///   - completion: A closure which will be invoked in background queue when finished.
-    func set<T>(key: String, value: T?, completion: (() -> Void)?) where T: NSObject, T: NSSecureCoding {
+    func set<T>(key: String, value: T?, completion: (() -> Void)?) where T: NSObject, T: NSCoding {
         memoryCache[key] = value
         diskCacheSwift.set(key: key, value: value, completion: completion)
     }

@@ -10,9 +10,6 @@
 #endif
 #endif
 
-#import "YYKVStorage.h"
-#import "YYMemoryCache.h"
-
 FOUNDATION_EXPORT double YYCache_SwiftVersionNumber;
 FOUNDATION_EXPORT const unsigned char YYCache_SwiftVersionString[];
 

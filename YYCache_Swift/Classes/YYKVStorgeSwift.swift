@@ -907,7 +907,7 @@ private extension YYKVStorageSwift {
         guard errorLogsEnabled else { return }
         let fileName = (filePath as NSString).lastPathComponent
         let printMsg = "[\(fileName)] [Line\(line)] [\(methodName)]: \(message)"
-        debugPrint("%{public}s.", printMsg)
+        debugPrint(printMsg)
     }
     
     func reset() {

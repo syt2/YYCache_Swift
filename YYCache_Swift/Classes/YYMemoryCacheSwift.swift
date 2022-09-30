@@ -17,7 +17,7 @@ import Foundation
 public class YYMemoryCacheSwift {
     
     /// The name of the cache. Default is nil.
-    var name: String?
+    public var name: String?
     
     /// The maximum number of objects the cache should hold.
     ///

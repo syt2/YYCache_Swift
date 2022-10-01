@@ -409,7 +409,7 @@ fileprivate class YYLinkMap {
         guard head != node else { return }
         node.next?.prev = node.prev
         node.prev?.next = node.next
-        if tail == node { tail = node }
+        if tail == node { tail = node.prev }
         node.prev = nil
         node.next = head
         head?.prev = node

@@ -27,6 +27,8 @@ pod 'YYCache_Swift', :git => 'https://github.com/syt2/YYCache_Swift.git'
 基础用法如下，其他接口请自行查看代码
 
 ``` swift
+import YYCache_Swift
+
 struct MyCacheValue: Codable { ... }
 
 // if you want to cache NSCoding object,

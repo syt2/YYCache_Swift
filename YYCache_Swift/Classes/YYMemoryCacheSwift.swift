@@ -97,7 +97,7 @@ public extension YYMemoryCacheSwift {
     /// - Parameter key: An object identifying the value.
     /// - Returns: Whether the key is in cache.
     func contains(key: AnyHashable) -> Bool {
-        around(lru.dict.keys.contains(key))
+        around(lru.dict.index(forKey: key) != nil)
     }
 
     subscript(key: AnyHashable) -> Any? {

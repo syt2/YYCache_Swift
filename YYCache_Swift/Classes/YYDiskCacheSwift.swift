@@ -143,7 +143,7 @@ public extension YYDiskCacheSwift {
     ///   - type: The type of the value you specify.
     ///   - key: A string identifying the value.
     /// - Returns: The value associated with key, or nil if no value is associated with key.
-    func get<T>(type: T.Type, key: String) -> T? where T: Codable {
+    func get<T>(type: T.Type, key: String) -> T? where T: Decodable {
         guard let item = lock.around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
         let object = try? JSONDecoder().decode(T.self, from: data)
         if let object = object, let extData = item.extendedData {
@@ -158,7 +158,7 @@ public extension YYDiskCacheSwift {
     ///   - type: The type of the value you specify.
     ///   - key: A string identifying the value.
     ///   - completion: A closure which will be invoked in background queue when finished.
-    func get<T>(type: T.Type, key: String, completion: @escaping (String, T?) -> Void) where T: Codable {
+    func get<T>(type: T.Type, key: String, completion: @escaping (String, T?) -> Void) where T: Decodable {
         queue.async { [weak self] in
             completion(key, self?.get(type: type, key: key))
         }
@@ -169,7 +169,7 @@ public extension YYDiskCacheSwift {
     /// - Parameters:
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
-    func set<T>(key: String, value: T?) where T: Codable {
+    func set<T>(key: String, value: T?) where T: Encodable {
         guard let newValue = value else {
             remove(key: key)
             return
@@ -191,7 +191,7 @@ public extension YYDiskCacheSwift {
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
     ///   - completion: A closure which will be invoked in background queue when finished.
-    func set<T>(key: String, value: T?, completion: (() -> Void)?)  where T: Codable {
+    func set<T>(key: String, value: T?, completion: (() -> Void)?)  where T: Encodable {
         queue.async { [weak self] in
             self?.set(key: key, value: value)
             completion?()
@@ -286,12 +286,8 @@ public extension YYDiskCacheSwift {
     
     /// Set `true` to enable error logs for debug.
     var errorLogsEnable: Bool {
-        get {
-            lock.around(kvStroage?.errorLogsEnabled ?? false)
-        }
-        set {
-            lock.around(kvStroage?.errorLogsEnabled = newValue)
-        }
+        get { lock.around(kvStroage?.errorLogsEnabled ?? false) }
+        set { lock.around(kvStroage?.errorLogsEnabled = newValue) }
     }
 }
 
@@ -305,11 +301,11 @@ public extension YYDiskCacheSwift {
     ///   - type: The type of the value you specify.
     ///   - key: A string identifying the value.
     /// - Returns: The value associated with key, or nil if no value is associated with key.
-    /// - warning: make sure the value implement NSSecureCoding,
-    ///     otherwise the value can't parse success.
     func get<T>(type: T.Type, key: String) -> T? where T: NSObject, T: NSCoding {
         guard let item = lock.around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
-        let object = try? NSKeyedUnarchiver.unarchivedObject(ofClass: T.self, from: data)
+        let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: data)
+        unarchiver?.requiresSecureCoding = false
+        let object = unarchiver?.decodeObject(of: T.self, forKey: NSKeyedArchiveRootObjectKey)
         if let object = object, let extData = item.extendedData {
             Self.setExtendedData(extData, to: object)
         }
@@ -322,8 +318,6 @@ public extension YYDiskCacheSwift {
     ///   - type: The type of the value you specify.
     ///   - key: A string identifying the value.
     ///   - completion: A closure which will be invoked in background queue when finished.
-    /// - warning: make sure the value implement NSSecureCoding,
-    ///     otherwise the value can't parse success.
     func get<T>(type: T.Type, key: String, completion: @escaping (String, T?) -> Void) where T: NSObject, T: NSCoding {
         queue.async { [weak self] in
             completion(key, self?.get(type: type, key: key))

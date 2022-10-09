@@ -31,11 +31,6 @@ import YYCache_Swift
 
 struct MyCacheValue: Codable { ... }
 
-// if you want to cache NSCoding object,
-// make sure the object implement NSSecureCoding
-// otherwise the value can't parse success from disk cache.
-class MyCacheNSCodingValue: NSObject, NSSecureCoding { ... }
-
 // get an instance of YYCacheSwift
 let cache = YYCacheSwift(name: "MyCache")
 
@@ -47,6 +42,9 @@ let cachedValue = cache?.get(type: MyCacheValue.self, key: "cacheKey")
 
 // remove cache by key synchronized
 cache?.remove(key: "cacheKey")
+
+
+class MyCacheNSCodingValue: NSObject, NSCoding { ... }
 
 // set cache asynchronized
 cache?.set(key: "cacheKey", value: MyCacheNSCodingValue(...), completion: nil)

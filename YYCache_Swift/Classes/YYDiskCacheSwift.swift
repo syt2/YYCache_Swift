@@ -70,7 +70,8 @@ public class YYDiskCacheSwift {
     private var kvStroage: YYKVStorageSwift?
     private let lock = YYUnfairLock()
     private let queue = DispatchQueue(label: "yycacheswift.disk", attributes: .concurrent)
-
+    private let hasher = Hasher.constantAccrossExecutions()
+ 
     private init(path: URL, inlineThreshold: UInt) {
         self.path = path
         self.inlineThreshold = inlineThreshold
@@ -120,18 +121,18 @@ public extension YYDiskCacheSwift {
     
     /// Returns a boolean value that indicates whether a given key is in cache.
     /// This method may blocks the calling thread until file read finished.
-    /// - Parameter key: A string identifying the value.
+    /// - Parameter key: A hashable identifying the value.
     /// - Returns: Whether the key is in cache.
-    func contains(key: String) -> Bool {
-        lock.around(kvStroage?.contains(key: key) ?? false)
+    func contains(key: AnyHashable) -> Bool {
+        lock.around(kvStroage?.contains(key: _keyString(key)) ?? false)
     }
     
     /// Returns a boolean value with the block that indicates whether a given key is in cache.
     /// This method returns immediately and invoke the passed block in background queue when the operation finished.
     /// - Parameters:
-    ///   - key: A string identifying the value.
+    ///   - key: A hashable identifying the value.
     ///   - completion: A closure which will be invoked in background queue when finished.
-    func contains(key: String, completion: @escaping (String, Bool) -> Void) {
+    func contains(key: AnyHashable, completion: @escaping (AnyHashable, Bool) -> Void) {
         queue.async { [weak self] in
             completion(key, self?.contains(key: key) ?? false)
         }
@@ -141,10 +142,10 @@ public extension YYDiskCacheSwift {
     /// This method may blocks the calling thread until file read finished.
     /// - Parameters:
     ///   - type: The type of the value you specify.
-    ///   - key: A string identifying the value.
+    ///   - key: A hashable identifying the value.
     /// - Returns: The value associated with key, or nil if no value is associated with key.
-    func get<T>(type: T.Type, key: String) -> T? where T: Decodable {
-        guard let item = lock.around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
+    func get<T>(type: T.Type, key: AnyHashable) -> T? where T: Decodable {
+        guard let item = lock.around(kvStroage?.getItem(key: _keyString(key))), let data = item.value else { return nil }
         let object = try? JSONDecoder().decode(T.self, from: data)
         if let object = object, let extData = item.extendedData {
             Self.setExtendedData(extData, to: object)
@@ -156,9 +157,9 @@ public extension YYDiskCacheSwift {
     /// This method returns immediately and invoke the passed block in background queue when the operation finished.
     /// - Parameters:
     ///   - type: The type of the value you specify.
-    ///   - key: A string identifying the value.
+    ///   - key: A hashable identifying the value.
     ///   - completion: A closure which will be invoked in background queue when finished.
-    func get<T>(type: T.Type, key: String, completion: @escaping (String, T?) -> Void) where T: Decodable {
+    func get<T>(type: T.Type, key: AnyHashable, completion: @escaping (AnyHashable, T?) -> Void) where T: Decodable {
         queue.async { [weak self] in
             completion(key, self?.get(type: type, key: key))
         }
@@ -169,7 +170,7 @@ public extension YYDiskCacheSwift {
     /// - Parameters:
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
-    func set<T>(key: String, value: T?) where T: Encodable {
+    func set<T>(key: AnyHashable, value: T?) where T: Encodable {
         guard let newValue = value else {
             remove(key: key)
             return
@@ -177,6 +178,7 @@ public extension YYDiskCacheSwift {
         guard let value = try? JSONEncoder().encode(newValue) else { return }
         let extData = Self.getExtendedData(object: newValue)
         var filename: String? = nil
+        let key = _keyString(key)
         if kvStroage?.type != .SQLite && value.count > inlineThreshold {
             filename = _filename(key: key)
         }
@@ -191,7 +193,7 @@ public extension YYDiskCacheSwift {
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
     ///   - completion: A closure which will be invoked in background queue when finished.
-    func set<T>(key: String, value: T?, completion: (() -> Void)?)  where T: Encodable {
+    func set<T>(key: AnyHashable, value: T?, completion: (() -> Void)?)  where T: Encodable {
         queue.async { [weak self] in
             self?.set(key: key, value: value)
             completion?()
@@ -201,8 +203,8 @@ public extension YYDiskCacheSwift {
     /// Removes the value of the specified key in the cache.
     /// This method may blocks the calling thread until file delete finished.
     /// - Parameter key: The key identifying the value to be removed.
-    func remove(key: String) {
-        lock.around(kvStroage?.removeItem(key: key))
+    func remove(key: AnyHashable) {
+        lock.around(kvStroage?.removeItem(key: _keyString(key)))
     }
     
     /// Removes the value of the specified key in the cache.
@@ -210,7 +212,7 @@ public extension YYDiskCacheSwift {
     /// - Parameters:
     ///   - key: The key identifying the value to be removed.
     ///   - completion: A closure which will be invoked in background queue when finished.
-    func remove(key: String, completion: ((String) -> Void)?) {
+    func remove(key: AnyHashable, completion: ((AnyHashable) -> Void)?) {
         queue.async { [weak self] in
             self?.remove(key: key)
             completion?(key)
@@ -299,10 +301,10 @@ public extension YYDiskCacheSwift {
     /// This method may blocks the calling thread until file read finished.
     /// - Parameters:
     ///   - type: The type of the value you specify.
-    ///   - key: A string identifying the value.
+    ///   - key: A hashable identifying the value.
     /// - Returns: The value associated with key, or nil if no value is associated with key.
-    func get<T>(type: T.Type, key: String) -> T? where T: NSObject, T: NSCoding {
-        guard let item = lock.around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
+    func get<T>(type: T.Type, key: AnyHashable) -> T? where T: NSObject, T: NSCoding {
+        guard let item = lock.around(kvStroage?.getItem(key: _keyString(key))), let data = item.value else { return nil }
         let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: data)
         unarchiver?.requiresSecureCoding = false
         let object = unarchiver?.decodeObject(of: T.self, forKey: NSKeyedArchiveRootObjectKey)
@@ -316,9 +318,9 @@ public extension YYDiskCacheSwift {
     /// This method returns immediately and invoke the passed block in background queue when the operation finished.
     /// - Parameters:
     ///   - type: The type of the value you specify.
-    ///   - key: A string identifying the value.
+    ///   - key: A hashable identifying the value.
     ///   - completion: A closure which will be invoked in background queue when finished.
-    func get<T>(type: T.Type, key: String, completion: @escaping (String, T?) -> Void) where T: NSObject, T: NSCoding {
+    func get<T>(type: T.Type, key: AnyHashable, completion: @escaping (AnyHashable, T?) -> Void) where T: NSObject, T: NSCoding {
         queue.async { [weak self] in
             completion(key, self?.get(type: type, key: key))
         }
@@ -329,7 +331,7 @@ public extension YYDiskCacheSwift {
     /// - Parameters:
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
-    func set<T>(key: String, value: T?) where T: NSObject, T: NSCoding {
+    func set<T>(key: AnyHashable, value: T?) where T: NSObject, T: NSCoding {
         guard let newValue = value else {
             remove(key: key)
             return
@@ -337,6 +339,7 @@ public extension YYDiskCacheSwift {
         guard let value = try? NSKeyedArchiver.archivedData(withRootObject: newValue, requiringSecureCoding: false) else { return }
         let extData = Self.getExtendedData(object: newValue)
         var filename: String? = nil
+        let key = _keyString(key)
         if kvStroage?.type != .SQLite && value.count > inlineThreshold {
             filename = _filename(key: key)
         }
@@ -351,7 +354,7 @@ public extension YYDiskCacheSwift {
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
     ///   - completion: A closure which will be invoked in background queue when finished.
-    func set<T>(key: String, value: T?, completion: (() -> Void)?) where T: NSObject, T: NSCoding {
+    func set<T>(key: AnyHashable, value: T?, completion: (() -> Void)?) where T: NSObject, T: NSCoding {
         queue.async { [weak self] in
             self?.set(key: key, value: value)
             completion?()
@@ -566,5 +569,14 @@ private extension YYDiskCacheSwift {
         lock.around {
             kvStroage = nil
         }
+    }
+    
+    func _keyString(_ key: AnyHashable) -> String {
+        if let key = key as? String {
+            return key
+        }
+        var hasher = hasher
+        key.hash(into: &hasher)
+        return String(hasher.finalize())
     }
 }

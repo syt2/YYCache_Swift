@@ -91,7 +91,7 @@ public extension YYMemoryCacheSwift {
     }
     
     /// Returns a Boolean value that indicates whether a given key is in cache.
-    /// - Parameter key: An object identifying the value.
+    /// - Parameter key: A hashable identifying the value.
     /// - Returns: Whether the key is in cache.
     func contains(key: AnyHashable) -> Bool {
         lock.around(lru.dict.index(forKey: key) != nil)
@@ -103,7 +103,7 @@ public extension YYMemoryCacheSwift {
     }
     
     /// Returns the value associated with a given key.
-    /// - Parameter key: An object identifying the value
+    /// - Parameter key: A hashable identifying the value
     /// - Returns: The value associated with key, or nil if no value is associated with key.
     func get(key: AnyHashable) -> Any? {
         lock.around {

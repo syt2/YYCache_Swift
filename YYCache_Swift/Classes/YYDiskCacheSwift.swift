@@ -342,8 +342,7 @@ public extension YYDiskCacheSwift {
             remove(key: key)
             return
         }
-        
-        guard let value = try? NSKeyedArchiver.archivedData(withRootObject: T.self, requiringSecureCoding: false) else { return }
+        guard let value = try? NSKeyedArchiver.archivedData(withRootObject: newValue, requiringSecureCoding: false) else { return }
         let extData = Self.getExtendedData(object: newValue)
         var filename: String? = nil
         if kvStroage?.type != .SQLite && value.count > inlineThreshold {

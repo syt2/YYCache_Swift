@@ -62,12 +62,12 @@ public class YYMemoryCacheSwift {
     /// The default value is nil.
     public var didEnterBackgroundClosure: ((YYMemoryCacheSwift) -> Void)?
     
-    private var lock = pthread_mutex_t()
+    private var lock: YYUnfairLock
     private var lru = YYLinkMap()
     private var queue = DispatchQueue(label: "com.ibireme.cache.memory")
     
     public init() {
-        pthread_mutex_init(&lock, nil)
+        lock = .init()
         NotificationCenter.default.addObserver(self, selector: #selector(_appDidReceiveMemoryWarningNotification), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(_appDidEnterBackgroundNotification), name: UIApplication.didEnterBackgroundNotification, object: nil)
         _trimRecursively()
@@ -77,7 +77,6 @@ public class YYMemoryCacheSwift {
         NotificationCenter.default.removeObserver(self, name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
         lru.removeAll()
-        pthread_mutex_destroy(&lock)
     }
 }
 
@@ -85,19 +84,19 @@ public class YYMemoryCacheSwift {
 public extension YYMemoryCacheSwift {
     ///  The number of objects in the cache.
     var count: UInt {
-        around(lru.totalCount)
+        lock.around(lru.totalCount)
     }
     
     /// The total cost of objects in the cache.
     var cost: UInt {
-        around(lru.totalCost)
+        lock.around(lru.totalCost)
     }
     
     /// Returns a Boolean value that indicates whether a given key is in cache.
     /// - Parameter key: An object identifying the value.
     /// - Returns: Whether the key is in cache.
     func contains(key: AnyHashable) -> Bool {
-        around(lru.dict.index(forKey: key) != nil)
+        lock.around(lru.dict.index(forKey: key) != nil)
     }
 
     subscript(key: AnyHashable) -> Any? {
@@ -109,7 +108,7 @@ public extension YYMemoryCacheSwift {
     /// - Parameter key: An object identifying the value
     /// - Returns: The value associated with key, or nil if no value is associated with key.
     func get(key: AnyHashable) -> Any? {
-        around {
+        lock.around {
             guard let node = lru.dict[key] else { return nil }
             node.time = CACurrentMediaTime()
             lru.bringToHead(node: node)
@@ -127,7 +126,7 @@ public extension YYMemoryCacheSwift {
             remove(forKey: key)
             return
         }
-        around {
+        lock.around {
             let now = CACurrentMediaTime()
             if let node = lru.dict[key] {
                 lru.totalCost -= node.cost
@@ -158,7 +157,7 @@ public extension YYMemoryCacheSwift {
     /// Removes the value of the specified key in the cache.
     /// - Parameter key: The key identifying the value to be removed.
     func remove(forKey key: AnyHashable) {
-        around {
+        lock.around {
             guard let node = lru.dict[key] else { return }
             lru.remove(node: node)
             
@@ -175,15 +174,15 @@ public extension YYMemoryCacheSwift {
     
     /// Empties the cache immediately.
     func removeAll() {
-        around(lru.removeAll())
+        lock.around(lru.removeAll())
     }
     
     
     /// If `true`, the key-value pair will be released asynchronously to avoid blocking the access methods,
     /// otherwise it will be released in the access method (such as remove). Default is YES.
     var releaseAsynchronously: Bool {
-        get { around(lru.releaseAsynchronously) }
-        set { around(lru.releaseAsynchronously = newValue) }
+        get { lock.around(lru.releaseAsynchronously) }
+        set { lock.around(lru.releaseAsynchronously = newValue) }
     }
     
     /// If `true`, the key-value pair will be released on main thread,
@@ -191,8 +190,8 @@ public extension YYMemoryCacheSwift {
     /// You may set this value to `true` if the key-value object contains
     /// the instance which should be released in main thread (such as UIView/CALayer).
     var releaseOnMainThread: Bool {
-        get { around(lru.releaseOnMainThread) }
-        set { around(lru.releaseOnMainThread = newValue)}
+        get { lock.around(lru.releaseOnMainThread) }
+        set { lock.around(lru.releaseOnMainThread = newValue)}
     }
     
 }
@@ -238,7 +237,7 @@ private extension YYMemoryCacheSwift {
     }
     
     func _trim(cost: UInt) {
-        var finish: Bool = around {
+        var finish: Bool = lock.around {
             guard costLimit > 0 else {
                 lru.removeAll()
                 return true
@@ -249,15 +248,12 @@ private extension YYMemoryCacheSwift {
         if finish { return }
         var holder = [Any]()
         repeat {
-            if pthread_mutex_trylock(&lock) == 0 {
+            lock.tryAround {
                 if lru.totalCost > costLimit {
                     if let tail = lru.removeTail() { holder.append(tail) }
                 } else {
                     finish = true
                 }
-                pthread_mutex_unlock(&lock)
-            } else {
-                usleep(10 * 1000) //10 ms
             }
         } while !finish
         if holder.isEmpty { return }
@@ -266,7 +262,7 @@ private extension YYMemoryCacheSwift {
     }
     
     func _trim(count: UInt) {
-        var finish: Bool = around {
+        var finish: Bool = lock.around {
             guard countLimit > 0 else {
                 lru.removeAll()
                 return true
@@ -277,15 +273,12 @@ private extension YYMemoryCacheSwift {
         if finish { return }
         var holder = [Any]()
         repeat {
-            if pthread_mutex_trylock(&lock) == 0 {
+            lock.tryAround {
                 if lru.totalCount > countLimit {
                     if let tail = lru.removeTail() { holder.append(tail) }
                 } else {
                     finish = true
                 }
-                pthread_mutex_unlock(&lock)
-            } else {
-                usleep(10 * 1000)
             }
         } while !finish
         if holder.isEmpty { return }
@@ -295,7 +288,7 @@ private extension YYMemoryCacheSwift {
 
     func _trim(age: TimeInterval) {
         let now = CACurrentMediaTime()
-        var finish: Bool = around {
+        var finish: Bool = lock.around {
             guard ageLimit > 0 else {
                 lru.removeAll()
                 return true
@@ -307,15 +300,12 @@ private extension YYMemoryCacheSwift {
         if finish { return }
         var holder = [Any]()
         repeat {
-            if pthread_mutex_trylock(&lock) == 0 {
+            lock.tryAround {
                 if let tail = lru.tail, now - tail.time > ageLimit {
                     if let tail = lru.removeTail() { holder.append(tail) }
                 } else {
                     finish = true
                 }
-                pthread_mutex_unlock(&lock)
-            } else {
-                usleep(10 * 1000)
             }
         } while !finish
         if holder.isEmpty { return }
@@ -335,23 +325,6 @@ private extension YYMemoryCacheSwift {
         if shouldRemoveAllObjectsWhenEnteringBackground {
             removeAll()
         }
-    }
-}
-
-// MARK: lock
-private extension YYMemoryCacheSwift {
-    @discardableResult
-    func around<T>(_ closure: () throws -> T) rethrows -> T {
-        pthread_mutex_lock(&lock)
-        defer { pthread_mutex_unlock(&lock) }
-        return try closure()
-    }
-    
-    @discardableResult
-    func around<T>(_ closure: @autoclosure () throws -> T) rethrows -> T {
-        pthread_mutex_lock(&lock)
-        defer { pthread_mutex_unlock(&lock) }
-        return try closure()
     }
 }
 

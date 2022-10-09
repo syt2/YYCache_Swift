@@ -68,13 +68,12 @@ public class YYDiskCacheSwift {
     public var autoTrimInterval: TimeInterval = 60
     
     private var kvStroage: YYKVStorageSwift?
-    private var lock: YYUnfairLock
-    private var queue: DispatchQueue = DispatchQueue(label: "com.ibireme.cache.disk", attributes: .concurrent)
+    private let lock = YYUnfairLock()
+    private let queue: DispatchQueue = DispatchQueue(label: "com.ibireme.cache.disk", attributes: .concurrent)
     
     private init(path: URL, inlineThreshold: UInt) {
         self.path = path
         self.inlineThreshold = inlineThreshold
-        lock = .init()
         NotificationCenter.default.addObserver(self, selector: #selector(_appWillBeTerminated), name: UIApplication.willTerminateNotification, object: nil)
     }
     

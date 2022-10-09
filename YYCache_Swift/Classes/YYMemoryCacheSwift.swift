@@ -62,12 +62,11 @@ public class YYMemoryCacheSwift {
     /// The default value is nil.
     public var didEnterBackgroundClosure: ((YYMemoryCacheSwift) -> Void)?
     
-    private var lock: YYUnfairLock
-    private var lru = YYLinkMap()
-    private var queue = DispatchQueue(label: "com.ibireme.cache.memory")
+    private let lock = YYUnfairLock()
+    private let lru = YYLinkMap()
+    private let queue = DispatchQueue(label: "com.ibireme.cache.memory")
     
     public init() {
-        lock = .init()
         NotificationCenter.default.addObserver(self, selector: #selector(_appDidReceiveMemoryWarningNotification), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(_appDidEnterBackgroundNotification), name: UIApplication.didEnterBackgroundNotification, object: nil)
         _trimRecursively()
@@ -76,7 +75,6 @@ public class YYMemoryCacheSwift {
     deinit {
         NotificationCenter.default.removeObserver(self, name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
-        lru.removeAll()
     }
 }
 

@@ -21,7 +21,7 @@ public class YYCacheSwift {
     public let memoryCache: YYMemoryCacheSwift
     
     /// The underlying disk cache. see `YYDiskCache` for more information.
-    public let diskCacheSwift: YYDiskCacheSwift
+    public let diskCache: YYDiskCacheSwift
     
     /// Create a new instance with the specified name.
     /// Multiple instances with the same name will make the cache unstable.
@@ -49,7 +49,7 @@ public class YYCacheSwift {
         let memoryCache = YYMemoryCacheSwift()
         memoryCache.name = name
         self.name = name
-        self.diskCacheSwift = diskCacheSwift
+        self.diskCache = diskCacheSwift
         self.memoryCache = memoryCache
     }
     
@@ -80,7 +80,7 @@ public extension YYCacheSwift {
     /// - Parameter key: A string identifying the value. If nil, just return NO.
     /// - Returns: Whether the key is in cache.
     func containes(key: String) -> Bool {
-        memoryCache.contains(key: key) || diskCacheSwift.contains(key: key)
+        memoryCache.contains(key: key) || diskCache.contains(key: key)
     }
     
     ///  Returns a boolean value with the block that indicates whether a given key is in cache.
@@ -94,7 +94,7 @@ public extension YYCacheSwift {
                 completion(key, true)
             }
         } else {
-            diskCacheSwift.contains(key: key, completion: completion)
+            diskCache.contains(key: key, completion: completion)
         }
     }
     
@@ -108,7 +108,7 @@ public extension YYCacheSwift {
         if let object = memoryCache[key] as? T {
             return object
         }
-        guard let object = diskCacheSwift.get(type: T.self, key: key) else {
+        guard let object = diskCache.get(type: T.self, key: key) else {
             return nil
         }
         memoryCache[key] = object
@@ -128,7 +128,7 @@ public extension YYCacheSwift {
             }
             return
         }
-        diskCacheSwift.get(type: type, key: key) { key, value in
+        diskCache.get(type: type, key: key) { key, value in
             if let value = value, !self.memoryCache.contains(key: key) {
                 self.memoryCache[key] = value
             }
@@ -143,7 +143,7 @@ public extension YYCacheSwift {
     ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
     func set<T>(key: String, value: T?) where T: Codable {
         memoryCache[key] = value
-        diskCacheSwift.set(key: key, value: value)
+        diskCache.set(key: key, value: value)
     }
     
     /// Sets the value of the specified key in the cache.
@@ -154,7 +154,7 @@ public extension YYCacheSwift {
     ///   - completion: A closure which will be invoked in background queue when finished.
     func set<T>(key: String, value: T?, completion: (() -> Void)?) where T: Codable {
         memoryCache[key] = value
-        diskCacheSwift.set(key: key, value: value, completion: completion)
+        diskCache.set(key: key, value: value, completion: completion)
     }
     
     ///  Removes the value of the specified key in the cache.
@@ -162,7 +162,7 @@ public extension YYCacheSwift {
     /// - Parameter key: The key identifying the value to be removed.
     func remove(key: String) {
         memoryCache.remove(forKey: key)
-        diskCacheSwift.remove(key: key)
+        diskCache.remove(key: key)
     }
     
     ///  Removes the value of the specified key in the cache.
@@ -172,14 +172,14 @@ public extension YYCacheSwift {
     ///   - completion: A closure which will be invoked in background queue when finished.
     func remove(key: String, completion: ((String) -> Void)?) {
         memoryCache.remove(forKey: key)
-        diskCacheSwift.remove(key: key, completion: completion)
+        diskCache.remove(key: key, completion: completion)
     }
     
     ///  Empties the cache.
     ///  This method may blocks the calling thread until file delete finished.
     func removeAll() {
         memoryCache.removeAll()
-        diskCacheSwift.removeAll()
+        diskCache.removeAll()
     }
     
     ///  Empties the cache.
@@ -187,7 +187,7 @@ public extension YYCacheSwift {
     /// - Parameter completion: A closure which will be invoked in background queue when finished.
     func removeAll(completion: (() -> Void)?) {
         memoryCache.removeAll()
-        diskCacheSwift.removeAll(completion: completion)
+        diskCache.removeAll(completion: completion)
     }
     
     /// Empties the cache with block.
@@ -197,7 +197,7 @@ public extension YYCacheSwift {
     ///   - completion: This closure will be invoked at the end, pass nil to ignore.
     func removeAll(progressCallback: ((Int, Int) -> Void)?, completion: ((Bool) -> Void)?) {
         memoryCache.removeAll()
-        diskCacheSwift.removeAll(progressCallback: progressCallback, completion: completion)
+        diskCache.removeAll(progressCallback: progressCallback, completion: completion)
     }
 }
 
@@ -216,7 +216,7 @@ public extension YYCacheSwift {
         if let object = memoryCache[key] as? T {
             return object
         }
-        guard let object = diskCacheSwift.get(type: T.self, key: key) else {
+        guard let object = diskCache.get(type: T.self, key: key) else {
             return nil
         }
         memoryCache[key] = object
@@ -238,7 +238,7 @@ public extension YYCacheSwift {
             }
             return
         }
-        diskCacheSwift.get(type: type, key: key) { key, value in
+        diskCache.get(type: type, key: key) { key, value in
             if let value = value, !self.memoryCache.contains(key: key) {
                 self.memoryCache[key] = value
             }
@@ -255,7 +255,7 @@ public extension YYCacheSwift {
     ///     otherwise the value can't parse success from sqlite.
     func set<T>(key: String, value: T?) where T: NSObject, T: NSCoding {
         memoryCache[key] = value
-        diskCacheSwift.set(key: key, value: value)
+        diskCache.set(key: key, value: value)
     }
     
     /// Sets the value of the specified key in the cache.
@@ -268,6 +268,6 @@ public extension YYCacheSwift {
     ///     otherwise the value can't parse success from sqlite.
     func set<T>(key: String, value: T?, completion: (() -> Void)?) where T: NSObject, T: NSCoding {
         memoryCache[key] = value
-        diskCacheSwift.set(key: key, value: value, completion: completion)
+        diskCache.set(key: key, value: value, completion: completion)
     }
 }

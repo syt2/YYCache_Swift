@@ -68,17 +68,19 @@ public class YYDiskCacheSwift {
     public var autoTrimInterval: TimeInterval = 60
     
     private var kvStroage: YYKVStorageSwift?
-    private var semaphore = DispatchSemaphore(value: 1)
+    private var lock = pthread_mutex_t()
     private var queue: DispatchQueue = DispatchQueue(label: "com.ibireme.cache.disk", attributes: .concurrent)
     
     private init(path: URL, inlineThreshold: UInt) {
         self.path = path
         self.inlineThreshold = inlineThreshold
+        pthread_mutex_init(&lock, nil)
         NotificationCenter.default.addObserver(self, selector: #selector(_appWillBeTerminated), name: UIApplication.willTerminateNotification, object: nil)
     }
     
     deinit {
         NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
+        pthread_mutex_destroy(&lock)
     }
     
     /// get cache instance
@@ -123,7 +125,7 @@ public extension YYDiskCacheSwift {
     /// - Parameter key: A string identifying the value.
     /// - Returns: Whether the key is in cache.
     func contains(key: String) -> Bool {
-        semaphore.around(kvStroage?.contains(key: key) ?? false)
+        around(kvStroage?.contains(key: key) ?? false)
     }
     
     /// Returns a boolean value with the block that indicates whether a given key is in cache.
@@ -144,7 +146,7 @@ public extension YYDiskCacheSwift {
     ///   - key: A string identifying the value.
     /// - Returns: The value associated with key, or nil if no value is associated with key.
     func get<T>(type: T.Type, key: String) -> T? where T: Codable {
-        guard let item = semaphore.around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
+        guard let item = around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
         let object = try? JSONDecoder().decode(T.self, from: data)
         if let object = object, let extData = item.extendedData {
             Self.setExtendedData(extData, to: object)
@@ -180,7 +182,7 @@ public extension YYDiskCacheSwift {
         if kvStroage?.type != .SQLite && value.count > inlineThreshold {
             filename = _filename(key: key)
         }
-        semaphore.around {
+        around {
             kvStroage?.saveItem(key: key, value: value, filename: filename, extendedData: extData)
         }
     }
@@ -202,7 +204,7 @@ public extension YYDiskCacheSwift {
     /// This method may blocks the calling thread until file delete finished.
     /// - Parameter key: The key identifying the value to be removed.
     func remove(key: String) {
-        semaphore.around(kvStroage?.removeItem(key: key))
+        around(kvStroage?.removeItem(key: key))
     }
     
     /// Removes the value of the specified key in the cache.
@@ -220,7 +222,7 @@ public extension YYDiskCacheSwift {
     /// Empties the cache.
     /// This method may blocks the calling thread until file delete finished.
     func removeAll() {
-        semaphore.around(kvStroage?.removeAllItems())
+        around(kvStroage?.removeAllItems())
     }
 
     /// Empties the cache.
@@ -244,7 +246,7 @@ public extension YYDiskCacheSwift {
                 completion?(true)
                 return
             }
-            self.semaphore.around {
+            self.around {
                 self.kvStroage?.removeAllItems {
                     progressCallback?(Int($0), Int($1))
                 } completion: {
@@ -257,7 +259,7 @@ public extension YYDiskCacheSwift {
     /// The total objects count in this cache.
     /// This method may blocks the calling thread until file read finished.
     var totalCount: Int {
-        Int(semaphore.around(kvStroage?.count) ?? 0)
+        Int(around(kvStroage?.count) ?? 0)
     }
     
     /// Get the number of objects in this cache.
@@ -272,7 +274,7 @@ public extension YYDiskCacheSwift {
     /// The total objects cost (in bytes) of objects in this cache.
     /// This method may blocks the calling thread until file read finished.
     var totalCost: Int {
-        Int(semaphore.around(kvStroage?.size) ?? 0)
+        Int(around(kvStroage?.size) ?? 0)
     }
     
     ///Get the total cost (in bytes) of objects in this cache.
@@ -287,10 +289,10 @@ public extension YYDiskCacheSwift {
     /// Set `true` to enable error logs for debug.
     var errorLogsEnable: Bool {
         get {
-            semaphore.around(kvStroage?.errorLogsEnabled ?? false)
+            around(kvStroage?.errorLogsEnabled ?? false)
         }
         set {
-            semaphore.around(kvStroage?.errorLogsEnabled = newValue)
+            around(kvStroage?.errorLogsEnabled = newValue)
         }
     }
 }
@@ -308,7 +310,7 @@ public extension YYDiskCacheSwift {
     /// - warning: make sure the value implement NSSecureCoding,
     ///     otherwise the value can't parse success.
     func get<T>(type: T.Type, key: String) -> T? where T: NSObject, T: NSCoding {
-        guard let item = semaphore.around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
+        guard let item = around(kvStroage?.getItem(key: key)), let data = item.value else { return nil }
         let object = try? NSKeyedUnarchiver.unarchivedObject(ofClass: T.self, from: data)
         if let object = object, let extData = item.extendedData {
             Self.setExtendedData(extData, to: object)
@@ -349,7 +351,7 @@ public extension YYDiskCacheSwift {
         if kvStroage?.type != .SQLite && value.count > inlineThreshold {
             filename = _filename(key: key)
         }
-        semaphore.around {
+        around {
             kvStroage?.saveItem(key: key, value: value, filename: filename, extendedData: extData)
         }
     }
@@ -378,7 +380,7 @@ public extension YYDiskCacheSwift {
     /// This method may blocks the calling thread until operation finished.
     /// - Parameter count: The total count allowed to remain after the cache has been trimmed.
     func trim(count: UInt) {
-        semaphore.around {
+        around {
             _trim(count: count)
         }
     }
@@ -399,7 +401,7 @@ public extension YYDiskCacheSwift {
     /// This method may blocks the calling thread until operation finished.
     /// - Parameter cost: The total cost allowed to remain after the cache has been trimmed.
     func trim(cost: UInt) {
-        semaphore.around {
+        around {
             _trim(cost: cost)
         }
     }
@@ -420,7 +422,7 @@ public extension YYDiskCacheSwift {
     /// This method may blocks the calling thread until operation finished.
     /// - Parameter age: The maximum age of the object.
     func trim(age: TimeInterval) {
-        semaphore.around {
+        around {
             _trim(age: age)
         }
     }
@@ -475,12 +477,12 @@ private extension YYDiskCacheSwift {
     static var globalInstances = [String: () -> YYDiskCacheSwift?]()
     
     static func YYDiskCacheGetGlobal(path: URL) -> YYDiskCacheSwift? {
-        return globalInstancesLock.around(globalInstances[path.absoluteString]?())
+        return YYGlobalInstanceSemaAround(globalInstances[path.absoluteString]?())
     }
     
     static func YYDiskCacheSetGlobal(cache: YYDiskCacheSwift?) {
         guard let path = cache?.path else { return }
-        globalInstancesLock.around {
+        YYGlobalInstanceSemaAround {
             guard let cache = cache else {
                 globalInstances.removeValue(forKey: path.absoluteString)
                 return
@@ -505,6 +507,13 @@ private extension YYDiskCacheSwift {
         guard let capacity = values?.volumeAvailableCapacity, capacity >= 0 else { return nil }
         return UInt(capacity)
     }
+    
+    @discardableResult
+    static func YYGlobalInstanceSemaAround<T>(_ closure: @autoclosure () throws -> T) rethrows -> T {
+        globalInstancesLock.wait()
+        defer { globalInstancesLock.signal() }
+        return try closure()
+    }
 }
 
 
@@ -521,7 +530,7 @@ private extension YYDiskCacheSwift {
     func _trimInBackground() {
         queue.async { [weak self] in
             guard let self = self else { return }
-            self.semaphore.around {
+            self.around {
                 self._trim(cost: self.costLimit)
                 self._trim(count: self.countLimit)
                 self._trim(age: self.ageLimit)
@@ -567,8 +576,26 @@ private extension YYDiskCacheSwift {
     }
     
     @objc func _appWillBeTerminated() {
-        semaphore.around {
+        around {
             kvStroage = nil
         }
+    }
+}
+
+
+// MARK: lock
+private extension YYDiskCacheSwift {
+    @discardableResult
+    func around<T>(_ closure: () throws -> T) rethrows -> T {
+        pthread_mutex_lock(&lock)
+        defer { pthread_mutex_unlock(&lock) }
+        return try closure()
+    }
+    
+    @discardableResult
+    func around<T>(_ closure: @autoclosure () throws -> T) rethrows -> T {
+        pthread_mutex_lock(&lock)
+        defer { pthread_mutex_unlock(&lock) }
+        return try closure()
     }
 }

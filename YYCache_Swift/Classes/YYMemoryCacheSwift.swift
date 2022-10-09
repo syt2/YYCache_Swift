@@ -64,8 +64,8 @@ public class YYMemoryCacheSwift {
     
     private let lock = YYUnfairLock()
     private let lru = YYLinkMap()
-    private let queue = DispatchQueue(label: "com.ibireme.cache.memory")
-    
+    private let queue = DispatchQueue(label: "yycacheswift.memory")
+
     public init() {
         NotificationCenter.default.addObserver(self, selector: #selector(_appDidReceiveMemoryWarningNotification), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(_appDidEnterBackgroundNotification), name: UIApplication.didEnterBackgroundNotification, object: nil)

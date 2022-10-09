@@ -69,8 +69,8 @@ public class YYDiskCacheSwift {
     
     private var kvStroage: YYKVStorageSwift?
     private let lock = YYUnfairLock()
-    private let queue: DispatchQueue = DispatchQueue(label: "com.ibireme.cache.disk", attributes: .concurrent)
-    
+    private let queue = DispatchQueue(label: "yycacheswift.disk", attributes: .concurrent)
+
     private init(path: URL, inlineThreshold: UInt) {
         self.path = path
         self.inlineThreshold = inlineThreshold

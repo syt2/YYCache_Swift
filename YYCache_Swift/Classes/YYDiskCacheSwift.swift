@@ -329,8 +329,6 @@ public extension YYDiskCacheSwift {
     /// - Parameters:
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
-    /// - warning: make sure the value implement NSSecureCoding,
-    ///     otherwise the value can't parse success.
     func set<T>(key: String, value: T?) where T: NSObject, T: NSCoding {
         guard let newValue = value else {
             remove(key: key)
@@ -353,8 +351,6 @@ public extension YYDiskCacheSwift {
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
     ///   - completion: A closure which will be invoked in background queue when finished.
-    /// - warning: make sure the value implement NSSecureCoding,
-    ///     otherwise the value can't parse success.
     func set<T>(key: String, value: T?, completion: (() -> Void)?) where T: NSObject, T: NSCoding {
         queue.async { [weak self] in
             self?.set(key: key, value: value)

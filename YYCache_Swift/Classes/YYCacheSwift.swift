@@ -263,3 +263,51 @@ public extension YYCacheSwift {
         diskCache.set(key: key, value: value, completion: completion)
     }
 }
+
+
+// MARK: async functions
+@available(iOS 13, *)
+public extension YYCacheSwift {
+    func containsAsync(key: String) async -> Bool {
+        await withUnsafeContinuation { continuation in
+            contains(key: key) { continuation.resume(returning: $1) }
+        }
+    }
+    
+    func getAsync<T>(type: T.Type, key: String) async -> T? where T: Decodable {
+        await withUnsafeContinuation { continuation in
+            get(type: type, key: key) { continuation.resume(returning: $1) }
+        }
+        
+    }
+    
+    func setAsync<T>(key: String, value: T?) async where T: Encodable {
+        await withUnsafeContinuation { continuation in
+            set(key: key, value: value) { continuation.resume() }
+        }
+    }
+
+    func removeAsync(key: String) async {
+        await withUnsafeContinuation { continuation in
+            remove(key: key) { _ in continuation.resume() }
+        }
+    }
+
+    func removeAllAsync() async {
+        await withUnsafeContinuation { continuation in
+            removeAll { continuation.resume() }
+        }
+    }
+    
+    func getAsync<T>(type: T.Type, key: String) async -> T? where T: NSObject, T: NSCoding {
+        await withUnsafeContinuation { continuation in
+            get(type: type, key: key) { continuation.resume(returning: $1) }
+        }
+    }
+    
+    func set<T>(key: String, value: T?) async where T: NSObject, T: NSCoding {
+        await withUnsafeContinuation { continuation in
+            set(key: key, value: value) { continuation.resume() }
+        }
+    }
+}

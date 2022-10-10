@@ -1,0 +1,13 @@
+use_frameworks!
+
+platform :ios, '10.0'
+
+target 'YYCache_Swift_Example' do
+  pod 'YYCache_Swift', :path => '../'
+
+  target 'YYCache_Swift_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end

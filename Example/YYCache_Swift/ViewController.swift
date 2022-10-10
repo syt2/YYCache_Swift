@@ -111,6 +111,11 @@ private extension ViewController {
 private extension ViewController {
     
     func setupOptionbuttons() {
+        let label = UILabel(frame: .init(x: 16, y: 80 + 48.0 * 12, width: UIScreen.main.bounds.width - 32, height: 32))
+        label.textAlignment = .center
+        label.text = "存储方式"
+        view.addSubview(label)
+        
         let buttonMemory = UIButton(frame: .init(x: 16, y: 80 + 48.0 * 13, width: UIScreen.main.bounds.width / 2 - 32, height: 32), primaryAction: .init(title: "使用内存存储", handler: { action in
             if self.options.contains(.memory) {
                 self.options.remove(.memory)
@@ -134,6 +139,7 @@ private extension ViewController {
     }
     
     func setupViews() {
+        
         let buttonToStoreCodable = UIButton(frame: .init(x: 16, y: 80 + 48.0, width: UIScreen.main.bounds.width / 2 - 32, height: 32), primaryAction: .init(title: "同步存储codable", handler: { _ in
             if self.options.contains(.disk) && self.options.contains(.memory) {
                 self.cache?.set(key: self.text.text ?? "", value: StoreCodable(string: self.text.text))
@@ -220,6 +226,12 @@ private extension ViewController {
         view.addSubview(buttonToRemoveAll)
         
         
+        
+            
+        let label = UILabel(frame: .init(x: 16, y: 80 + 48.0 * 4, width: UIScreen.main.bounds.width - 32, height: 32))
+        label.textAlignment = .center
+        label.text = "异步方法"
+        view.addSubview(label)
         
         let buttonToStoreCodableAsync = UIButton(frame: .init(x: 16, y: 80 + 48.0 * 5, width: UIScreen.main.bounds.width / 2 - 32, height: 32), primaryAction: .init(title: "异步存储codable", handler: { _ in
             if self.options.contains(.disk) && self.options.contains(.memory) {
@@ -323,7 +335,10 @@ private extension ViewController {
     
     
     func setupNewASyncViews() {
-        
+        let label = UILabel(frame: .init(x: 16, y: 80 + 48.0 * 8, width: UIScreen.main.bounds.width - 32, height: 32))
+        label.textAlignment = .center
+        label.text = "async/await 方法"
+        view.addSubview(label)
         let buttonToStoreCodableAsync = UIButton(frame: .init(x: 16, y: 80 + 48.0 * 9, width: UIScreen.main.bounds.width / 2 - 32, height: 32), primaryAction: .init(title: "异步存储codable", handler: { _ in
             if self.options.contains(.disk) && self.options.contains(.memory) {
                 Task {

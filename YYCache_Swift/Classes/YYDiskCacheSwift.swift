@@ -626,7 +626,7 @@ public extension YYDiskCacheSwift {
         }
     }
     
-    func set<T>(key: String, value: T?) async where T: NSObject, T: NSCoding {
+    func setAsync<T>(key: String, value: T?) async where T: NSObject, T: NSCoding {
         await withUnsafeContinuation { continuation in
             set(key: key, value: value) { continuation.resume() }
         }

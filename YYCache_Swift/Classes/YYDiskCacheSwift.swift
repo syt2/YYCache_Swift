@@ -191,7 +191,7 @@ public extension YYDiskCacheSwift {
     ///   - key: The key with which to associate the value.
     ///   - value: The object to be stored in the cache. If nil, it calls `remove`.
     ///   - completion: A closure which will be invoked in background queue when finished.
-    func set<T>(key: String, value: T?, completion: (() -> Void)?)  where T: Encodable {
+    func set<T>(key: String, value: T?, completion: (() -> Void)?) where T: Encodable {
         queue.async { [weak self] in
             self?.set(key: key, value: value)
             completion?()

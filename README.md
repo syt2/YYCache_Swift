@@ -56,6 +56,12 @@ cache?.get(type: MyCacheNSCodingValue.self, key: "cacheKey") { key, value in
 
 // remove all caches asynchronized
 cache?.removeAll { }
+
+
+// asynchronized functions
+Task {
+    let cachedValue = await cache?.getAsync(type: MyCacheValue.self, key: "cacheKey")
+}
 ```
 
 ## License
